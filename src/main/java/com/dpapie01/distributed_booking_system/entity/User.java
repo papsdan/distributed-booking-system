@@ -1,5 +1,6 @@
 package com.dpapie01.distributed_booking_system.entity;
 
+import com.dpapie01.distributed_booking_system.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -36,8 +37,9 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String role = "PLAYER";
+    private Role role = Role.PLAYER;
 
     @Column(nullable = false)
     private Boolean active = true;
