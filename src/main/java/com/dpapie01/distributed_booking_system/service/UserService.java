@@ -40,6 +40,9 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
         }
 
+        Location location = locationRepository.findById(dto.getLocationId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Location not found"));
+
         User user = new User();
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
@@ -49,9 +52,6 @@ public class UserService {
         user.setRole(Role.PLAYER);
         user.setActive(true);
         User savedUser = userRepository.save(user);
-
-        Location location = locationRepository.findById(dto.getLocationId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Location not found"));
 
         Profile profile = new Profile();
         profile.setUser(savedUser);
