@@ -2,9 +2,13 @@ package com.dpapie01.distributed_booking_system.service;
 
 import com.dpapie01.distributed_booking_system.dto.RegisterRequestDTO;
 import com.dpapie01.distributed_booking_system.dto.UserResponseDTO;
+import com.dpapie01.distributed_booking_system.entity.Location;
+import com.dpapie01.distributed_booking_system.entity.Profile;
 import com.dpapie01.distributed_booking_system.entity.User;
 import com.dpapie01.distributed_booking_system.enums.Role;
 import com.dpapie01.distributed_booking_system.mapper.UserMapper;
+import com.dpapie01.distributed_booking_system.repository.LocationRepository;
+import com.dpapie01.distributed_booking_system.repository.ProfileRepository;
 import com.dpapie01.distributed_booking_system.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,12 +21,14 @@ import org.springframework.web.server.ResponseStatusException;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final LocationRepository locationRepository;
+    private final ProfileRepository profileRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
     public UserResponseDTO getUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         return userMapper.toResponseDTO(user);
     }
 
@@ -43,6 +49,15 @@ public class UserService {
         user.setRole(Role.PLAYER);
         user.setActive(true);
         User savedUser = userRepository.save(user);
+
+        Location location = locationRepository.findById(dto.getLocationId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Location not found"));
+
+        Profile profile = new Profile();
+        profile.setUser(savedUser);
+        profile.setPreferredLocation(location);
+        profile.setGender(dto.getGender());
+        profileRepository.save(profile);
 
         return userMapper.toResponseDTO(savedUser);
     }
