@@ -33,4 +33,19 @@ public class ProfileService {
         return profileMapper.toResponseDTO(profile);
     }
 
+    public ProfileResponseDTO updateProfile(UpdateProfileRequestDTO dto, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        Profile profile = profileRepository.findByUser(user)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile not found"));
+
+        Location location = locationRepository.findById(dto.getLocationId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Location not found"));
+
+        profile.setPreferredLocation(location);
+        profile.setGender(dto.getGender());
+
+        return profileMapper.toResponseDTO(profileRepository.save(profile));
+    }
 }
