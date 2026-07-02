@@ -84,31 +84,6 @@ class UserServiceTest {
     
 
     @Test
-    void testGetUserById_Found() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(savedUser));
-        when(userMapper.toResponseDTO(savedUser)).thenReturn(userResponse);
-
-        UserResponseDTO result = userService.getUserById(1L);
-
-        assertEquals(1L, result.getId());
-        assertEquals("jonsmith", result.getUsername());
-        assertEquals("jon@example.com", result.getEmail());
-        verify(userRepository).findById(1L);
-        verify(userMapper).toResponseDTO(savedUser);
-    }
-
-    @Test
-    void testGetUserById_NotFound() {
-        when(userRepository.findById(99L)).thenReturn(Optional.empty());
-
-        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> userService.getUserById(99L));
-
-        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
-        verify(userRepository).findById(99L);
-    }
-
-    @Test
     void testRegister_Valid() {
         when(userRepository.existsByUsername("jonsmith")).thenReturn(false);
         when(userRepository.existsByEmail("jon@example.com")).thenReturn(false);

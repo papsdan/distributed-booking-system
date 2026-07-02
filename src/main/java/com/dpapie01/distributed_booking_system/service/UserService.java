@@ -26,12 +26,6 @@ public class UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
-    public UserResponseDTO getUserById(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        return userMapper.toResponseDTO(user);
-    }
-
     public UserResponseDTO register(RegisterRequestDTO dto) {
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already taken");
