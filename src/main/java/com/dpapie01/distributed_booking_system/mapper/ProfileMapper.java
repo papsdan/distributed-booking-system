@@ -11,6 +11,7 @@ public class ProfileMapper {
         ProfileResponseDTO dto = new ProfileResponseDTO();
         dto.setId(profile.getId());
         dto.setGender(profile.getGender());
+        dto.setPreferredLocationId(profile.getPreferredLocation().getId());
         dto.setPreferredLocationCity(profile.getPreferredLocation().getCity());
         dto.setPreferredLocationArea(profile.getPreferredLocation().getArea());
         return dto;

@@ -13,6 +13,7 @@ import lombok.Setter;
 public class ProfileResponseDTO {
     private Long id;
     private Gender gender;
+    private Long preferredLocationId;
     private String preferredLocationCity;
     private String preferredLocationArea;
 }
