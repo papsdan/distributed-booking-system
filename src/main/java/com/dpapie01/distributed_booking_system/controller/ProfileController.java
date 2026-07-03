@@ -25,7 +25,8 @@ public class ProfileController {
     private final LocationRepository locationRepository;
 
     @GetMapping
-    public String showProfile(Model model, @AuthenticationPrincipal UserDetails userDetails) {
+    public String showProfile(@RequestParam(name = "updateSuccess", defaultValue = "false") boolean updateSuccess,
+                               Model model, @AuthenticationPrincipal UserDetails userDetails) {
         ProfileResponseDTO profile = profileService.getProfile(userDetails.getUsername());
 
         UpdateProfileRequestDTO dto = new UpdateProfileRequestDTO();
@@ -35,6 +36,9 @@ public class ProfileController {
         model.addAttribute("updateProfileRequestDto", dto);
         model.addAttribute("locations", locationRepository.findAll());
         model.addAttribute("genders", Gender.values());
+        if (updateSuccess) {
+            model.addAttribute("successMessage", "Profile updated successfully.");
+        }
         return "profile";
     }
 
@@ -47,7 +51,7 @@ public class ProfileController {
         }
         try {
             profileService.updateProfile(dto, userDetails.getUsername());
-            return "redirect:/profile";
+            return "redirect:/profile?updateSuccess=true";
         } catch (ResponseStatusException e) {
             model.addAttribute("errorMessage", e.getReason());
             model.addAttribute("locations", locationRepository.findAll());
