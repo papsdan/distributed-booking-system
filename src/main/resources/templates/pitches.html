@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Pitches</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Pitches</h2>
+            <a th:href="@{/admin/pitches/new}" class="btn btn-primary">Add Pitch</a>
+        </div>
+
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+        <table class="table table-bordered align-middle">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Location</th>
+                    <th>Capacity</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="pitch : ${pitches}" th:id="'pitch-' + ${pitch.id}">
+                    <td th:text="${pitch.name}"></td>
+                    <td th:text="${pitch.locationCity + ' - ' + pitch.locationArea}"></td>
+                    <td th:text="${pitch.capacity}"></td>
+                    <td>
+                        <span th:if="${pitch.active}" class="badge bg-success">Active</span>
+                        <span th:unless="${pitch.active}" class="badge bg-secondary">Inactive</span>
+                    </td>
+                    <td>
+                        <a th:href="@{/admin/pitches/{id}/edit(id=${pitch.id})}" class="btn btn-outline-secondary btn-sm">Edit</a>
+                        <form method="post" th:action="@{/admin/pitches/{id}/status(id=${pitch.id})}" class="d-inline">
+                            <input type="hidden" name="activeStatus" th:value="${!pitch.active}" />
+                            <button type="submit"
+                                    th:class="${pitch.active} ? 'btn btn-outline-danger btn-sm' : 'btn btn-outline-success btn-sm'"
+                                    th:text="${pitch.active} ? 'Deactivate' : 'Activate'"></button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+</body>
+</html>

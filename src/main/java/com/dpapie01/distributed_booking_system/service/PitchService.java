@@ -8,9 +8,12 @@ import com.dpapie01.distributed_booking_system.mapper.PitchMapper;
 import com.dpapie01.distributed_booking_system.repository.LocationRepository;
 import com.dpapie01.distributed_booking_system.repository.PitchRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -21,11 +24,26 @@ public class PitchService {
     private final PitchMapper pitchMapper;
     private final PitchRepository pitchRepository;
 
+    public List<PitchResponseDTO> getAllPitches() {
+        return pitchRepository.findAll(Sort.by("id")).stream()
+                .map(pitch -> pitchMapper.toResponseDTO(pitch))
+                .toList();
+    }
+
     public PitchResponseDTO getPitch(Long pitchId) {
         Pitch pitch = pitchRepository.findById(pitchId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pitch not found"));
 
         return pitchMapper.toResponseDTO(pitch);
+    }
+
+    public PitchResponseDTO setActiveStatus(Long pitchId, boolean active) {
+        Pitch pitch = pitchRepository.findById(pitchId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pitch not found"));
+
+        pitch.setActive(active);
+
+        return pitchMapper.toResponseDTO(pitchRepository.save(pitch));
     }
 
     public PitchResponseDTO updatePitch(PitchRequestDTO dto, Long pitchId, boolean activeStatus) {

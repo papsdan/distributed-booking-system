@@ -27,4 +27,6 @@ public class PitchRequestDTO {
     @Min(value = 10, message = "Capacity must be at least 10 (5-aside)")
     @Max(value = 22, message = "Capacity must not be over 22 (11-aside)")
     private Integer capacity;
+
+    private Boolean active;
 }
