@@ -13,9 +13,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -236,6 +238,34 @@ class PitchServiceTest {
         verify(locationRepository).findById(1L);
         verify(pitchMapper).toResponseDTO(pitch);
         verify(pitchRepository).save(pitch);
+    }
+
+    @Test
+    void testSetActiveStatus_NotFound() {
+        when(pitchRepository.findById(1L)).thenReturn(Optional.empty());
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> pitchService.setActiveStatus(1L, false));
+
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+        assertEquals("Pitch not found", ex.getReason());
+        verify(pitchRepository).findById(1L);
+    }
+
+    @Test
+    void testSetActiveStatus_Valid() {
+        pitchResponse.setActive(false);
+        when(pitchRepository.findById(1L)).thenReturn(Optional.of(pitch));
+        when(pitchRepository.save(pitch)).thenReturn(pitch);
+        when(pitchMapper.toResponseDTO(pitch)).thenReturn(pitchResponse);
+
+        PitchResponseDTO result = pitchService.setActiveStatus(1L, false);
+
+        assertEquals(1L, result.getId());
+        assertEquals(false, result.getActive());
+        verify(pitchRepository).findById(1L);
+        verify(pitchRepository).save(pitch);
+        verify(pitchMapper).toResponseDTO(pitch);
     }
 
 }
