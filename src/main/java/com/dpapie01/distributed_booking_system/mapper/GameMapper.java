@@ -18,6 +18,7 @@ public class GameMapper {
         dto.setLocationArea(game.getPitch().getLocation().getArea());
         dto.setOrganiserId(game.getOrganiser().getId());
         dto.setOrganiserName(game.getOrganiser().getFirstName() + " " + game.getOrganiser().getLastName());
+        dto.setOrganiserEmail(game.getOrganiser().getEmail());
         dto.setGameDate(game.getGameDate());
         dto.setGameTime(game.getGameTime());
         dto.setDurationMinutes(game.getDurationMinutes());

@@ -41,9 +41,11 @@ public class GameService {
                 .toList();
     }
 
-    public GameResponseDTO getGame(Long gameId) {
+    public GameResponseDTO getGameForEdit(Long gameId, String organiserEmail) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not found"));
+
+        assertOrganiser(game, organiserEmail);
 
         return gameMapper.toResponseDTO(game);
     }
@@ -72,9 +74,11 @@ public class GameService {
         return gameMapper.toResponseDTO(gameRepository.save(game));
     }
 
-    public GameResponseDTO updateGame(GameRequestDTO dto, Long gameId) {
+    public GameResponseDTO updateGame(GameRequestDTO dto, Long gameId, String organiserEmail) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not found"));
+
+        assertOrganiser(game, organiserEmail);
 
         Pitch pitch = validatePitchAndCapacity(dto);
 
@@ -111,6 +115,12 @@ public class GameService {
         }
 
         return pitch;
+    }
+
+    private void assertOrganiser(Game game, String organiserEmail) {
+        if (!game.getOrganiser().getEmail().equals(organiserEmail)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the organiser can edit this game");
+        }
     }
 
 }

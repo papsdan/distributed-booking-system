@@ -35,8 +35,10 @@ public class GameController {
     public String listGames(@ModelAttribute("gameFilterDto") GameFilterDTO filter,
                              @RequestParam(name = "createSuccess", defaultValue = "false") boolean createSuccess,
                              @RequestParam(name = "updateSuccess", defaultValue = "false") boolean updateSuccess,
-                             Model model) {
+                             Model model,
+                             @AuthenticationPrincipal UserDetails userDetails) {
         model.addAttribute("games", gameService.filterGames(filter));
+        model.addAttribute("currentUserEmail", userDetails.getUsername());
         List<Location> locations = locationRepository.findAll();
         model.addAttribute("cities", locations.stream()
                 .map(Location::getCity).distinct().sorted().toList());
@@ -80,8 +82,8 @@ public class GameController {
     }
 
     @GetMapping("/{id}/edit")
-    public String showEditForm(@PathVariable Long id, Model model) {
-        GameResponseDTO game = gameService.getGame(id);
+    public String showEditForm(@PathVariable Long id, Model model, @AuthenticationPrincipal UserDetails userDetails) {
+        GameResponseDTO game = gameService.getGameForEdit(id, userDetails.getUsername());
 
         GameRequestDTO dto = new GameRequestDTO();
         dto.setTitle(game.getTitle());
@@ -104,14 +106,15 @@ public class GameController {
     @PostMapping("/{id}")
     public String updateGame(@PathVariable Long id,
                               @Valid @ModelAttribute("gameRequestDto") GameRequestDTO dto,
-                              BindingResult result, Model model) {
+                              BindingResult result, Model model,
+                              @AuthenticationPrincipal UserDetails userDetails) {
         if (result.hasErrors()) {
             model.addAttribute("gameId", id);
             addFormAttributes(model);
             return "game-form";
         }
         try {
-            gameService.updateGame(dto, id);
+            gameService.updateGame(dto, id, userDetails.getUsername());
             return "redirect:/games?updateSuccess=true";
         } catch (ResponseStatusException e) {
             model.addAttribute("errorMessage", e.getReason());

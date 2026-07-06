@@ -108,31 +108,6 @@ class GameServiceTest {
     }
 
     @Test
-    void testGetGame_Found() {
-        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
-        when(gameMapper.toResponseDTO(game)).thenReturn(gameResponse);
-
-        GameResponseDTO result = gameService.getGame(1L);
-
-        assertEquals(1L, result.getId());
-        assertEquals("Sunday Game", result.getTitle());
-        verify(gameRepository).findById(1L);
-    }
-
-    @Test
-    void testGetGame_NotFound() {
-        when(gameRepository.findById(1L)).thenReturn(Optional.empty());
-
-        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> gameService.getGame(1L));
-
-        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
-        assertEquals("Game not found", ex.getReason());
-        verify(gameRepository).findById(1L);
-
-    }
-
-    @Test
     void testCreateGame_UserNotFound() {
         when(userRepository.findByEmail("jon@example.com")).thenReturn(Optional.empty());
 
@@ -226,10 +201,21 @@ class GameServiceTest {
         when(gameRepository.findById(1L)).thenReturn(Optional.empty());
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> gameService.updateGame(gameRequest, 1L));
+                () -> gameService.updateGame(gameRequest, 1L, "jon@example.com"));
 
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
         assertEquals("Game not found", ex.getReason());
+    }
+
+    @Test
+    void testUpdateGame_NotOrganiser() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> gameService.updateGame(gameRequest, 1L, "notorganiser@example.com"));
+
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+        assertEquals("Only the organiser can edit this game", ex.getReason());
     }
 
     @Test
@@ -238,7 +224,7 @@ class GameServiceTest {
         when(pitchRepository.findById(1L)).thenReturn(Optional.empty());
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> gameService.updateGame(gameRequest, 1L));
+                () -> gameService.updateGame(gameRequest, 1L, "jon@example.com"));
 
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
         assertEquals("Pitch not found", ex.getReason());
@@ -251,10 +237,44 @@ class GameServiceTest {
         when(gameRepository.save(game)).thenReturn(game);
         when(gameMapper.toResponseDTO(game)).thenReturn(gameResponse);
 
-        GameResponseDTO result = gameService.updateGame(gameRequest, 1L);
+        GameResponseDTO result = gameService.updateGame(gameRequest, 1L, "jon@example.com");
 
         assertEquals(1L, result.getId());
         assertEquals("Sunday Game", result.getTitle());
         verify(gameRepository).save(game);
+    }
+
+    @Test
+    void testGetGameForEdit_NotFound() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.empty());
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> gameService.getGameForEdit(1L, "jon@example.com"));
+
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+        assertEquals("Game not found", ex.getReason());
+    }
+
+    @Test
+    void testGetGameForEdit_NotOrganiser() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> gameService.getGameForEdit(1L, "someoneelse@example.com"));
+
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+        assertEquals("Only the organiser can edit this game", ex.getReason());
+    }
+
+    @Test
+    void testGetGameForEdit_Valid() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(gameMapper.toResponseDTO(game)).thenReturn(gameResponse);
+
+        GameResponseDTO result = gameService.getGameForEdit(1L, "jon@example.com");
+
+        assertEquals(1L, result.getId());
+        assertEquals("Sunday Game", result.getTitle());
+
     }
 }

@@ -28,6 +28,7 @@ public class GameResponseDTO {
     private String locationArea;
     private Long organiserId;
     private String organiserName;
+    private String organiserEmail;
     private LocalDate gameDate;
     private LocalTime gameTime;
     private Integer durationMinutes;
