@@ -1,0 +1,115 @@
+package com.dpapie01.distributed_booking_system.controller;
+
+import com.dpapie01.distributed_booking_system.dto.GameRequestDTO;
+import com.dpapie01.distributed_booking_system.dto.GameResponseDTO;
+import com.dpapie01.distributed_booking_system.enums.GameGenderOption;
+import com.dpapie01.distributed_booking_system.enums.GameType;
+import com.dpapie01.distributed_booking_system.enums.PaymentType;
+import com.dpapie01.distributed_booking_system.repository.PitchRepository;
+import com.dpapie01.distributed_booking_system.service.GameService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+@Controller
+@RequestMapping("/games")
+@RequiredArgsConstructor
+public class GameController {
+
+    private final GameService gameService;
+    private final PitchRepository pitchRepository;
+
+    @GetMapping
+    public String listGames(@RequestParam(name = "createSuccess", defaultValue = "false") boolean createSuccess,
+                             @RequestParam(name = "updateSuccess", defaultValue = "false") boolean updateSuccess,
+                             Model model) {
+        model.addAttribute("games", gameService.getAllGames());
+        if (createSuccess) {
+            model.addAttribute("successMessage", "Game created successfully.");
+        }
+        if (updateSuccess) {
+            model.addAttribute("successMessage", "Game updated successfully.");
+        }
+        return "games";
+    }
+
+    @GetMapping("/new")
+    public String showCreateForm(Model model) {
+        model.addAttribute("gameRequestDto", new GameRequestDTO());
+        addFormAttributes(model);
+        return "game-form";
+    }
+
+    @PostMapping
+    public String createGame(@Valid @ModelAttribute("gameRequestDto") GameRequestDTO dto,
+                              BindingResult result, Model model,
+                              @AuthenticationPrincipal UserDetails userDetails) {
+        if (result.hasErrors()) {
+            addFormAttributes(model);
+            return "game-form";
+        }
+        try {
+            gameService.createGame(dto, userDetails.getUsername());
+            return "redirect:/games?createSuccess=true";
+        } catch (ResponseStatusException e) {
+            model.addAttribute("errorMessage", e.getReason());
+            addFormAttributes(model);
+            return "game-form";
+        }
+    }
+
+    @GetMapping("/{id}/edit")
+    public String showEditForm(@PathVariable Long id, Model model) {
+        GameResponseDTO game = gameService.getGame(id);
+
+        GameRequestDTO dto = new GameRequestDTO();
+        dto.setTitle(game.getTitle());
+        dto.setDescription(game.getDescription());
+        dto.setPitchId(game.getPitchId());
+        dto.setGameDate(game.getGameDate());
+        dto.setGameTime(game.getGameTime());
+        dto.setDurationMinutes(game.getDurationMinutes());
+        dto.setGameType(game.getGameType());
+        dto.setGenderOption(game.getGenderOption());
+        dto.setPrice(game.getPrice());
+        dto.setPaymentType(game.getPaymentType());
+
+        model.addAttribute("gameRequestDto", dto);
+        model.addAttribute("gameId", id);
+        addFormAttributes(model);
+        return "game-form";
+    }
+
+    @PostMapping("/{id}")
+    public String updateGame(@PathVariable Long id,
+                              @Valid @ModelAttribute("gameRequestDto") GameRequestDTO dto,
+                              BindingResult result, Model model) {
+        if (result.hasErrors()) {
+            model.addAttribute("gameId", id);
+            addFormAttributes(model);
+            return "game-form";
+        }
+        try {
+            gameService.updateGame(dto, id);
+            return "redirect:/games?updateSuccess=true";
+        } catch (ResponseStatusException e) {
+            model.addAttribute("errorMessage", e.getReason());
+            model.addAttribute("gameId", id);
+            addFormAttributes(model);
+            return "game-form";
+        }
+    }
+
+    private void addFormAttributes(Model model) {
+        model.addAttribute("pitches", pitchRepository.findByActiveTrue());
+        model.addAttribute("gameTypes", GameType.values());
+        model.addAttribute("genderOptions", GameGenderOption.values());
+        model.addAttribute("paymentTypes", PaymentType.values());
+    }
+}

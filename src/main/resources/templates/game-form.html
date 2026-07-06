@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Game</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h2 class="mb-4">Game Details</h2>
+
+                <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+                <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+                <form method="post"
+                      th:action="${gameId} != null ? @{/games/{id}(id=${gameId})} : @{/games}"
+                      th:object="${gameRequestDto}">
+
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <input type="text" th:field="*{title}" class="form-control" required />
+                        <span th:if="${#fields.hasErrors('title')}"
+                              th:errors="*{title}"
+                              class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea th:field="*{description}" class="form-control"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="pitchId" class="form-label">Pitch</label>
+                        <select th:field="*{pitchId}" class="form-select">
+                            <option value="">-- Select Pitch --</option>
+                            <option th:each="p : ${pitches}"
+                                    th:value="${p.id}"
+                                    th:text="${p.name + ' - ' + p.location.city + ' - ' + p.location.area}"></option>
+                        </select>
+                        <span th:if="${#fields.hasErrors('pitchId')}"
+                              th:errors="*{pitchId}"
+                              class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="gameDate" class="form-label">Date</label>
+                        <input type="date" th:field="*{gameDate}" class="form-control" required />
+                        <span th:if="${#fields.hasErrors('gameDate')}"
+                              th:errors="*{gameDate}"
+                              class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="gameTime" class="form-label">Time</label>
+                        <input type="time" th:field="*{gameTime}" class="form-control" required />
+                        <span th:if="${#fields.hasErrors('gameTime')}"
+                              th:errors="*{gameTime}"
+                              class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="durationMinutes" class="form-label">Duration (minutes)</label>
+                        <input type="number" th:field="*{durationMinutes}" class="form-control" min="30" max="120" required />
+                        <span th:if="${#fields.hasErrors('durationMinutes')}"
+                              th:errors="*{durationMinutes}"
+                              class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="gameType" class="form-label">Game Type</label>
+                        <select id="gameType" th:field="*{gameType}" class="form-select">
+                            <option value="">-- Select Game Type --</option>
+                            <option th:each="type : ${gameTypes}" th:value="${type}" th:text="${type.label}"
+                                    th:attr="data-max-players=${type.maxPlayers}"></option>
+                        </select>
+                        <span th:if="${#fields.hasErrors('gameType')}"
+                              th:errors="*{gameType}"
+                              class="text-danger small"></span>
+                        <div id="maxPlayersHint" class="form-text"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="genderOption" class="form-label">Gender Option</label>
+                        <select th:field="*{genderOption}" class="form-select">
+                            <option value="">-- Select Gender Option --</option>
+                            <option th:each="option : ${genderOptions}" th:value="${option}" th:text="${option}"></option>
+                        </select>
+                        <span th:if="${#fields.hasErrors('genderOption')}"
+                              th:errors="*{genderOption}"
+                              class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="paymentType" class="form-label">Payment Type</label>
+                        <select id="paymentType" th:field="*{paymentType}" class="form-select">
+                            <option value="">-- Select Payment Type --</option>
+                            <option th:each="type : ${paymentTypes}" th:value="${type}" th:text="${type}"></option>
+                        </select>
+                        <span th:if="${#fields.hasErrors('paymentType')}"
+                              th:errors="*{paymentType}"
+                              class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Price</label>
+                        <input id="price" type="number" step="0.01" th:field="*{price}" class="form-control" min="0" required />
+                        <span th:if="${#fields.hasErrors('price')}"
+                              th:errors="*{price}"
+                              class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Save Game</button>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const paymentTypeSelect = document.getElementById('paymentType');
+        const priceInput = document.getElementById('price');
+        const gameTypeSelect = document.getElementById('gameType');
+        const maxPlayersHint = document.getElementById('maxPlayersHint');
+
+        function syncPriceField() {
+            const isFree = paymentTypeSelect.value === 'FREE';
+            priceInput.readOnly = isFree;
+            if (isFree) {
+                priceInput.value = '0';
+            }
+        }
+
+        function syncMaxPlayersHint() {
+            const selected = gameTypeSelect.selectedOptions[0];
+            const maxPlayers = selected ? selected.dataset.maxPlayers : null;
+            maxPlayersHint.textContent = maxPlayers ? `Max players: ${maxPlayers}` : '';
+        }
+
+        paymentTypeSelect.addEventListener('change', syncPriceField);
+        gameTypeSelect.addEventListener('change', syncMaxPlayersHint);
+        syncPriceField();
+        syncMaxPlayersHint();
+    </script>
+</body>
+</html>
