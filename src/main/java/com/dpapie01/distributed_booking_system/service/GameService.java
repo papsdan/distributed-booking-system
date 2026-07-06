@@ -1,5 +1,6 @@
 package com.dpapie01.distributed_booking_system.service;
 
+import com.dpapie01.distributed_booking_system.dto.GameFilterDTO;
 import com.dpapie01.distributed_booking_system.dto.GameRequestDTO;
 import com.dpapie01.distributed_booking_system.dto.GameResponseDTO;
 import com.dpapie01.distributed_booking_system.entity.Game;
@@ -12,7 +13,6 @@ import com.dpapie01.distributed_booking_system.repository.GameRepository;
 import com.dpapie01.distributed_booking_system.repository.PitchRepository;
 import com.dpapie01.distributed_booking_system.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -29,8 +29,14 @@ public class GameService {
     private final UserRepository userRepository;
     private final GameMapper gameMapper;
 
-    public List<GameResponseDTO> getAllGames() {
-        return gameRepository.findAll(Sort.by("gameDate", "gameTime")).stream()
+    public List<GameResponseDTO> filterGames(GameFilterDTO filter) {
+        return gameRepository.filterGames(
+                        filter.getCity() == null || filter.getCity().isBlank() ? null : filter.getCity(),
+                        filter.getArea() == null || filter.getArea().isBlank() ? null : filter.getArea(),
+                        filter.getGameType(),
+                        filter.getGenderOption(),
+                        filter.getGameDate(),
+                        filter.getMaxPrice()).stream()
                 .map(gameMapper::toResponseDTO)
                 .toList();
     }

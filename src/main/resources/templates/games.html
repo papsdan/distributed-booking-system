@@ -15,6 +15,45 @@
 
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
+        <form method="get" th:action="@{/games}" th:object="${gameFilterDto}" class="row g-2 mb-4">
+            <div class="col-md-2">
+                <select th:field="*{city}" class="form-select">
+                    <option value="">-- Any City --</option>
+                    <option th:each="c : ${cities}" th:value="${c}" th:text="${c}"></option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select th:field="*{area}" class="form-select">
+                    <option value="">-- Any Area --</option>
+                    <option th:each="a : ${areas}" th:value="${a}" th:text="${a}"></option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select th:field="*{gameType}" class="form-select">
+                    <option value="">-- Any Game Type --</option>
+                    <option th:each="type : ${gameTypes}" th:value="${type}" th:text="${type.label}"></option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select th:field="*{genderOption}" class="form-select">
+                    <option value="">-- Any Gender --</option>
+                    <option th:each="option : ${genderOptions}" th:value="${option}" th:text="${option}"></option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="date" th:field="*{gameDate}" class="form-control" placeholder="Date" />
+            </div>
+            <div class="col-md-2">
+                <input type="number" step="0.01" min="0" th:field="*{maxPrice}" class="form-control" placeholder="Max Price" />
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-secondary w-100">Filter</button>
+            </div>
+            <div class="col-md-1">
+                <a th:href="@{/games}" class="btn btn-outline-secondary w-100">Reset</a>
+            </div>
+        </form>
+
         <table class="table table-bordered align-middle">
             <thead>
                 <tr>

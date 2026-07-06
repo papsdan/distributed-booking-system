@@ -1,10 +1,13 @@
 package com.dpapie01.distributed_booking_system.controller;
 
+import com.dpapie01.distributed_booking_system.dto.GameFilterDTO;
 import com.dpapie01.distributed_booking_system.dto.GameRequestDTO;
 import com.dpapie01.distributed_booking_system.dto.GameResponseDTO;
 import com.dpapie01.distributed_booking_system.enums.GameGenderOption;
 import com.dpapie01.distributed_booking_system.enums.GameType;
 import com.dpapie01.distributed_booking_system.enums.PaymentType;
+import com.dpapie01.distributed_booking_system.entity.Location;
+import com.dpapie01.distributed_booking_system.repository.LocationRepository;
 import com.dpapie01.distributed_booking_system.repository.PitchRepository;
 import com.dpapie01.distributed_booking_system.service.GameService;
 import jakarta.validation.Valid;
@@ -17,6 +20,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/games")
 @RequiredArgsConstructor
@@ -24,12 +29,22 @@ public class GameController {
 
     private final GameService gameService;
     private final PitchRepository pitchRepository;
+    private final LocationRepository locationRepository;
 
     @GetMapping
-    public String listGames(@RequestParam(name = "createSuccess", defaultValue = "false") boolean createSuccess,
+    public String listGames(@ModelAttribute("gameFilterDto") GameFilterDTO filter,
+                             @RequestParam(name = "createSuccess", defaultValue = "false") boolean createSuccess,
                              @RequestParam(name = "updateSuccess", defaultValue = "false") boolean updateSuccess,
                              Model model) {
-        model.addAttribute("games", gameService.getAllGames());
+        model.addAttribute("games", gameService.filterGames(filter));
+        List<Location> locations = locationRepository.findAll();
+        model.addAttribute("cities", locations.stream()
+                .map(Location::getCity).distinct().sorted().toList());
+        model.addAttribute("areas", locations.stream()
+                .filter(loc -> filter.getCity() == null || filter.getCity().isBlank() || loc.getCity().equals(filter.getCity()))
+                .map(Location::getArea).distinct().sorted().toList());
+        model.addAttribute("gameTypes", GameType.values());
+        model.addAttribute("genderOptions", GameGenderOption.values());
         if (createSuccess) {
             model.addAttribute("successMessage", "Game created successfully.");
         }
