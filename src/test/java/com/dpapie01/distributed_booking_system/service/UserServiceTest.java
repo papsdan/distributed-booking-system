@@ -56,7 +56,7 @@ class UserServiceTest {
         registerRequest.setUsername("jonsmith");
         registerRequest.setEmail("jon@example.com");
         registerRequest.setPassword("password123");
-        registerRequest.setGender(Gender.MALE);
+        registerRequest.setGender(Gender.MAN);
         registerRequest.setLocationId(1L);
 
         location = new Location();
