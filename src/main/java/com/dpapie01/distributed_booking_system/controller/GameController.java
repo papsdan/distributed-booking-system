@@ -35,6 +35,7 @@ public class GameController {
     public String listGames(@ModelAttribute("gameFilterDto") GameFilterDTO filter,
                              @RequestParam(name = "createSuccess", defaultValue = "false") boolean createSuccess,
                              @RequestParam(name = "updateSuccess", defaultValue = "false") boolean updateSuccess,
+                             @RequestParam(name = "cancelSuccess", defaultValue = "false") boolean cancelSuccess,
                              Model model,
                              @AuthenticationPrincipal UserDetails userDetails) {
         model.addAttribute("games", gameService.filterGames(filter));
@@ -52,6 +53,9 @@ public class GameController {
         }
         if (updateSuccess) {
             model.addAttribute("successMessage", "Game updated successfully.");
+        }
+        if (cancelSuccess) {
+            model.addAttribute("successMessage", "Game cancelled successfully.");
         }
         return "games";
     }
@@ -128,6 +132,16 @@ public class GameController {
             model.addAttribute("gameId", id);
             addFormAttributes(model);
             return "game-form";
+        }
+    }
+
+    @PostMapping("/{id}/cancel")
+    public String cancelGame(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            gameService.cancelGame(id, userDetails.getUsername());
+            return "redirect:/games?cancelSuccess=true";
+        } catch (ResponseStatusException e) {
+            return "redirect:/games";
         }
     }
 

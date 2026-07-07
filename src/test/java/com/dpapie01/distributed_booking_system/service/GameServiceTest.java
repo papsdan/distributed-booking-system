@@ -10,6 +10,7 @@ import com.dpapie01.distributed_booking_system.entity.Pitch;
 import com.dpapie01.distributed_booking_system.entity.User;
 import com.dpapie01.distributed_booking_system.enums.GameGenderOption;
 import com.dpapie01.distributed_booking_system.enums.GameSlotStatus;
+import com.dpapie01.distributed_booking_system.enums.GameStatus;
 import com.dpapie01.distributed_booking_system.enums.GameType;
 import com.dpapie01.distributed_booking_system.enums.PaymentType;
 import com.dpapie01.distributed_booking_system.mapper.GameMapper;
@@ -227,7 +228,7 @@ class GameServiceTest {
         List<GameResponseDTO> result = gameService.filterGames(filter);
 
         assertEquals(1, result.size());
-        assertEquals("Sunday Game", result.get(0).getTitle());
+        assertEquals("Sunday Game", result.getFirst().getTitle());
     }
 
     @Test
@@ -240,7 +241,7 @@ class GameServiceTest {
         List<GameResponseDTO> result = gameService.filterGames(new GameFilterDTO());
 
         assertEquals(1, result.size());
-        assertEquals("Sunday Game", result.get(0).getTitle());
+        assertEquals("Sunday Game", result.getFirst().getTitle());
     }
 
     @Test
@@ -347,5 +348,49 @@ class GameServiceTest {
         assertEquals(1L, result.getId());
         assertEquals("Sunday Game", result.getTitle());
 
+    }
+
+    @Test
+    void testCancelGame_NotFound() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.empty());
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> gameService.cancelGame(1L, "jon@example.com"));
+
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+        assertEquals("Game not found", ex.getReason());
+    }
+
+    @Test
+    void testCancelGame_NotOrganiser() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> gameService.cancelGame(1L, "someoneelse@example.com"));
+
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+        assertEquals("Only the organiser can edit this game", ex.getReason());
+    }
+
+    @Test
+    void testCancelGame_AlreadyCancelled() {
+        game.setStatus(GameStatus.CANCELLED);
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> gameService.cancelGame(1L, "jon@example.com"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("Game is already cancelled", ex.getReason());
+    }
+
+    @Test
+    void testCancelGame_Valid() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+
+        gameService.cancelGame(1L, "jon@example.com");
+
+        assertEquals(GameStatus.CANCELLED, game.getStatus());
+        verify(gameRepository).save(game);
     }
 }

@@ -8,6 +8,7 @@ import com.dpapie01.distributed_booking_system.entity.GameSlot;
 import com.dpapie01.distributed_booking_system.entity.Pitch;
 import com.dpapie01.distributed_booking_system.entity.User;
 import com.dpapie01.distributed_booking_system.enums.GameSlotStatus;
+import com.dpapie01.distributed_booking_system.enums.GameStatus;
 import com.dpapie01.distributed_booking_system.enums.PaymentType;
 import com.dpapie01.distributed_booking_system.enums.RefundPolicy;
 import com.dpapie01.distributed_booking_system.mapper.GameMapper;
@@ -155,6 +156,20 @@ public class GameService {
         if (!game.getOrganiser().getEmail().equals(organiserEmail)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the organiser can edit this game");
         }
+    }
+
+    public void cancelGame(Long gameId, String organiserEmail) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not found"));
+
+        assertOrganiser(game, organiserEmail);
+
+        if (game.getStatus() == GameStatus.CANCELLED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Game is already cancelled");
+        }
+
+        game.setStatus(GameStatus.CANCELLED);
+        gameRepository.save(game);
     }
 
 }
