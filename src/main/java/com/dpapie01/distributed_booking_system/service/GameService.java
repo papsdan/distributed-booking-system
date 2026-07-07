@@ -4,12 +4,15 @@ import com.dpapie01.distributed_booking_system.dto.GameFilterDTO;
 import com.dpapie01.distributed_booking_system.dto.GameRequestDTO;
 import com.dpapie01.distributed_booking_system.dto.GameResponseDTO;
 import com.dpapie01.distributed_booking_system.entity.Game;
+import com.dpapie01.distributed_booking_system.entity.GameSlot;
 import com.dpapie01.distributed_booking_system.entity.Pitch;
 import com.dpapie01.distributed_booking_system.entity.User;
+import com.dpapie01.distributed_booking_system.enums.GameSlotStatus;
 import com.dpapie01.distributed_booking_system.enums.PaymentType;
 import com.dpapie01.distributed_booking_system.enums.RefundPolicy;
 import com.dpapie01.distributed_booking_system.mapper.GameMapper;
 import com.dpapie01.distributed_booking_system.repository.GameRepository;
+import com.dpapie01.distributed_booking_system.repository.GameSlotRepository;
 import com.dpapie01.distributed_booking_system.repository.PitchRepository;
 import com.dpapie01.distributed_booking_system.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -25,6 +29,7 @@ import java.util.List;
 public class GameService {
 
     private final GameRepository gameRepository;
+    private final GameSlotRepository gameSlotRepository;
     private final PitchRepository pitchRepository;
     private final UserRepository userRepository;
     private final GameMapper gameMapper;
@@ -37,8 +42,19 @@ public class GameService {
                         filter.getGenderOption(),
                         filter.getGameDate(),
                         filter.getMaxPrice()).stream()
-                .map(gameMapper::toResponseDTO)
+                .map(game -> gameMapper.toResponseDTO(game,
+                        countSlots(game, GameSlotStatus.BOOKED),
+                        countSlots(game, GameSlotStatus.AVAILABLE)))
                 .toList();
+    }
+
+    public GameResponseDTO getGameDetails(Long gameId) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not found"));
+
+        return gameMapper.toResponseDTO(game,
+                countSlots(game, GameSlotStatus.BOOKED),
+                countSlots(game, GameSlotStatus.AVAILABLE));
     }
 
     public GameResponseDTO getGameForEdit(Long gameId, String organiserEmail) {
@@ -48,6 +64,10 @@ public class GameService {
         assertOrganiser(game, organiserEmail);
 
         return gameMapper.toResponseDTO(game);
+    }
+
+    private int countSlots(Game game, GameSlotStatus status) {
+        return (int) gameSlotRepository.countByGameAndStatus(game, status);
     }
 
     public GameResponseDTO createGame(GameRequestDTO dto, String organiserEmail) {
@@ -71,7 +91,21 @@ public class GameService {
         game.setPaymentType(dto.getPaymentType());
         game.setRefundPolicy(RefundPolicy.NO_REFUND);
 
-        return gameMapper.toResponseDTO(gameRepository.save(game));
+        Game savedGame = gameRepository.save(game);
+        generateSlots(savedGame);
+
+        return gameMapper.toResponseDTO(savedGame);
+    }
+
+    private void generateSlots(Game game) {
+        List<GameSlot> slots = new ArrayList<>();
+        for (int i = 0; i < game.getMaxPlayers(); i++) {
+            GameSlot slot = new GameSlot();
+            slot.setGame(game);
+            slot.setStatus(GameSlotStatus.AVAILABLE);
+            slots.add(slot);
+        }
+        gameSlotRepository.saveAll(slots);
     }
 
     public GameResponseDTO updateGame(GameRequestDTO dto, Long gameId, String organiserEmail) {

@@ -35,6 +35,8 @@ public class GameResponseDTO {
     private GameType gameType;
     private GameGenderOption genderOption;
     private Integer maxPlayers;
+    private Integer attendingCount;
+    private Integer remainingSlots;
     private BigDecimal price;
     private PaymentType paymentType;
     private RefundPolicy refundPolicy;

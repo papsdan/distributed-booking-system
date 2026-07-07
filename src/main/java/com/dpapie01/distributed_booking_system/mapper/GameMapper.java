@@ -31,4 +31,11 @@ public class GameMapper {
         dto.setStatus(game.getStatus());
         return dto;
     }
+
+    public GameResponseDTO toResponseDTO(Game game, int attendingCount, int remainingSlots) {
+        GameResponseDTO dto = toResponseDTO(game);
+        dto.setAttendingCount(attendingCount);
+        dto.setRemainingSlots(remainingSlots);
+        return dto;
+    }
 }

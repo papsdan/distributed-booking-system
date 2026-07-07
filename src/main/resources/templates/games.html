@@ -63,7 +63,7 @@
                     <th>Time</th>
                     <th>Type</th>
                     <th>Gender</th>
-                    <th>Max Players</th>
+                    <th>Attending</th>
                     <th>Price</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -77,10 +77,11 @@
                     <td th:text="${game.gameTime}"></td>
                     <td th:text="${game.gameType.label}"></td>
                     <td th:text="${game.genderOption}"></td>
-                    <td th:text="${game.maxPlayers}"></td>
+                    <td th:text="${game.attendingCount + ' / ' + game.maxPlayers}"></td>
                     <td th:text="${game.price}"></td>
                     <td th:text="${game.status}"></td>
                     <td>
+                        <a th:href="@{/games/{id}(id=${game.id})}" class="btn btn-outline-primary btn-sm">View</a>
                         <a th:if="${game.organiserEmail == currentUserEmail}"
                            th:href="@{/games/{id}/edit(id=${game.id})}" class="btn btn-outline-secondary btn-sm">Edit</a>
                     </td>

@@ -81,6 +81,13 @@ public class GameController {
         }
     }
 
+    @GetMapping("/{id}")
+    public String showGameDetails(@PathVariable Long id, Model model) {
+        GameResponseDTO game = gameService.getGameDetails(id);
+        model.addAttribute("game", game);
+        return "game-details";
+    }
+
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model, @AuthenticationPrincipal UserDetails userDetails) {
         GameResponseDTO game = gameService.getGameForEdit(id, userDetails.getUsername());
