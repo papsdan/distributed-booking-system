@@ -385,6 +385,18 @@ class GameServiceTest {
     }
 
     @Test
+    void testCancelGame_AlreadyPlayed() {
+        game.setGameDate(LocalDate.of(2020, 1, 1));
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> gameService.cancelGame(1L, "jon@example.com"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("Game has already taken place", ex.getReason());
+    }
+
+    @Test
     void testCancelGame_Valid() {
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
 

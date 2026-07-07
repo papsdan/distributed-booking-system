@@ -41,4 +41,5 @@ public class GameResponseDTO {
     private PaymentType paymentType;
     private RefundPolicy refundPolicy;
     private GameStatus status;
+    private Boolean pastGame;
 }

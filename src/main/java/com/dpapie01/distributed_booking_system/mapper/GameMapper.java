@@ -4,6 +4,8 @@ import com.dpapie01.distributed_booking_system.dto.GameResponseDTO;
 import com.dpapie01.distributed_booking_system.entity.Game;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 @Component
 public class GameMapper {
 
@@ -29,6 +31,7 @@ public class GameMapper {
         dto.setPaymentType(game.getPaymentType());
         dto.setRefundPolicy(game.getRefundPolicy());
         dto.setStatus(game.getStatus());
+        dto.setPastGame(LocalDateTime.of(game.getGameDate(), game.getGameTime()).isBefore(LocalDateTime.now()));
         return dto;
     }
 

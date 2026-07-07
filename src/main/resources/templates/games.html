@@ -84,7 +84,7 @@
                         <a th:href="@{/games/{id}(id=${game.id})}" class="btn btn-outline-primary btn-sm">View</a>
                         <a th:if="${game.organiserEmail == currentUserEmail}"
                            th:href="@{/games/{id}/edit(id=${game.id})}" class="btn btn-outline-secondary btn-sm">Edit</a>
-                        <form th:if="${game.organiserEmail == currentUserEmail and game.status.name() != 'CANCELLED'}"
+                        <form th:if="${game.organiserEmail == currentUserEmail and game.status.name() != 'CANCELLED' and !game.pastGame}"
                               method="post" th:action="@{/games/{id}/cancel(id=${game.id})}" class="d-inline">
                             <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
                         </form>
