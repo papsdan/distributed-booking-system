@@ -1,16 +1,20 @@
 package com.dpapie01.distributed_booking_system.service;
 
+import com.dpapie01.distributed_booking_system.dto.GameFilterDTO;
 import com.dpapie01.distributed_booking_system.dto.GameRequestDTO;
 import com.dpapie01.distributed_booking_system.dto.GameResponseDTO;
 import com.dpapie01.distributed_booking_system.entity.Game;
+import com.dpapie01.distributed_booking_system.entity.GameSlot;
 import com.dpapie01.distributed_booking_system.entity.Location;
 import com.dpapie01.distributed_booking_system.entity.Pitch;
 import com.dpapie01.distributed_booking_system.entity.User;
 import com.dpapie01.distributed_booking_system.enums.GameGenderOption;
+import com.dpapie01.distributed_booking_system.enums.GameSlotStatus;
 import com.dpapie01.distributed_booking_system.enums.GameType;
 import com.dpapie01.distributed_booking_system.enums.PaymentType;
 import com.dpapie01.distributed_booking_system.mapper.GameMapper;
 import com.dpapie01.distributed_booking_system.repository.GameRepository;
+import com.dpapie01.distributed_booking_system.repository.GameSlotRepository;
 import com.dpapie01.distributed_booking_system.repository.PitchRepository;
 import com.dpapie01.distributed_booking_system.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,11 +29,13 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +44,8 @@ class GameServiceTest {
 
     @Mock
     private GameRepository gameRepository;
+    @Mock
+    private GameSlotRepository gameSlotRepository;
     @Mock
     private PitchRepository pitchRepository;
     @Mock
@@ -194,6 +202,69 @@ class GameServiceTest {
         assertEquals(1L, result.getId());
         assertEquals("Sunday Game", result.getTitle());
         verify(gameMapper).toResponseDTO(game);
+        verify(gameSlotRepository).saveAll(argThat((List<GameSlot> slots) ->
+                slots.size() == game.getMaxPlayers()
+                        && slots.stream().allMatch(slot -> slot.getGame() == game && slot.getStatus() == GameSlotStatus.AVAILABLE)));
+    }
+
+    @Test
+    void testFilterGames() {
+        GameFilterDTO filter = new GameFilterDTO();
+        filter.setCity("London");
+        filter.setArea("Finsbury Park");
+        filter.setGameType(GameType.TEN_A_SIDE);
+        filter.setGenderOption(GameGenderOption.MIXED);
+        filter.setGameDate(LocalDate.of(2026, 7, 20));
+        filter.setMaxPrice(BigDecimal.TEN);
+
+        when(gameRepository.filterGames("London", "Finsbury Park", GameType.TEN_A_SIDE, GameGenderOption.MIXED,
+                LocalDate.of(2026, 7, 20), BigDecimal.TEN))
+                .thenReturn(List.of(game));
+        when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.BOOKED)).thenReturn(4L);
+        when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(16L);
+        when(gameMapper.toResponseDTO(game, 4, 16)).thenReturn(gameResponse);
+
+        List<GameResponseDTO> result = gameService.filterGames(filter);
+
+        assertEquals(1, result.size());
+        assertEquals("Sunday Game", result.get(0).getTitle());
+    }
+
+    @Test
+    void testFilterGames_NoFiltersSelected() {
+        when(gameRepository.filterGames(null, null, null, null, null, null)).thenReturn(List.of(game));
+        when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.BOOKED)).thenReturn(0L);
+        when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(20L);
+        when(gameMapper.toResponseDTO(game, 0, 20)).thenReturn(gameResponse);
+
+        List<GameResponseDTO> result = gameService.filterGames(new GameFilterDTO());
+
+        assertEquals(1, result.size());
+        assertEquals("Sunday Game", result.get(0).getTitle());
+    }
+
+    @Test
+    void testGetGameDetails_Found() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.BOOKED)).thenReturn(4L);
+        when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(16L);
+        when(gameMapper.toResponseDTO(game, 4, 16)).thenReturn(gameResponse);
+
+        GameResponseDTO result = gameService.getGameDetails(1L);
+
+        assertEquals(1L, result.getId());
+        assertEquals("Sunday Game", result.getTitle());
+    }
+
+    @Test
+    void testGetGameDetails_NotFound() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.empty());
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> gameService.getGameDetails(1L));
+
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+        assertEquals("Game not found", ex.getReason());
     }
 
     @Test
