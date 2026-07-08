@@ -11,4 +11,5 @@ import java.util.Optional;
 @Repository
 public interface GameSlotRepository extends JpaRepository<GameSlot, Long> {
     long countByGameAndStatus(Game game, GameSlotStatus status);
+    Optional<GameSlot> findFirstByGameAndStatus(Game game, GameSlotStatus status);
 }

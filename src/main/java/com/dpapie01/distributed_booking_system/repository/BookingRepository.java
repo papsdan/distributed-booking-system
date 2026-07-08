@@ -11,5 +11,4 @@ import java.util.List;
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findBySlot_GameAndStatus(Game game, BookingStatus status);
-
 }

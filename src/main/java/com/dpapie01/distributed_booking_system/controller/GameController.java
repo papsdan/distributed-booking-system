@@ -9,6 +9,7 @@ import com.dpapie01.distributed_booking_system.enums.PaymentType;
 import com.dpapie01.distributed_booking_system.entity.Location;
 import com.dpapie01.distributed_booking_system.repository.LocationRepository;
 import com.dpapie01.distributed_booking_system.repository.PitchRepository;
+import com.dpapie01.distributed_booking_system.service.BookingService;
 import com.dpapie01.distributed_booking_system.service.GameService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import java.util.List;
 public class GameController {
 
     private final GameService gameService;
+    private final BookingService bookingService;
     private final PitchRepository pitchRepository;
     private final LocationRepository locationRepository;
 
@@ -86,11 +88,27 @@ public class GameController {
     }
 
     @GetMapping("/{id}")
-    public String showGameDetails(@PathVariable Long id, Model model) {
+    public String showGameDetails(@PathVariable Long id,
+                                   @RequestParam(name = "bookSuccess", defaultValue = "false") boolean bookSuccess,
+                                   Model model) {
         GameResponseDTO game = gameService.getGameDetails(id);
         model.addAttribute("game", game);
         model.addAttribute("attendees", gameService.getAttendees(id));
+        if (bookSuccess) {
+            model.addAttribute("successMessage", "You're booked in!");
+        }
         return "game-details";
+    }
+
+    @PostMapping("/{id}/book")
+    public String bookGame(@PathVariable Long id, Model model, @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            bookingService.bookSlot(id, userDetails.getUsername());
+            return "redirect:/games/" + id + "?bookSuccess=true";
+        } catch (ResponseStatusException e) {
+            model.addAttribute("errorMessage", e.getReason());
+            return "redirect:/games/" + id;
+        }
     }
 
     @GetMapping("/{id}/edit")
@@ -137,11 +155,12 @@ public class GameController {
     }
 
     @PostMapping("/{id}/cancel")
-    public String cancelGame(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+    public String cancelGame(@PathVariable Long id, Model model, @AuthenticationPrincipal UserDetails userDetails) {
         try {
             gameService.cancelGame(id, userDetails.getUsername());
             return "redirect:/games?cancelSuccess=true";
         } catch (ResponseStatusException e) {
+            model.addAttribute("errorMessage", e.getReason());
             return "redirect:/games";
         }
     }
