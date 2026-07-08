@@ -1,5 +1,6 @@
 package com.dpapie01.distributed_booking_system.service;
 
+import com.dpapie01.distributed_booking_system.dto.GameAttendeeDTO;
 import com.dpapie01.distributed_booking_system.dto.GameFilterDTO;
 import com.dpapie01.distributed_booking_system.dto.GameRequestDTO;
 import com.dpapie01.distributed_booking_system.dto.GameResponseDTO;
@@ -7,15 +8,9 @@ import com.dpapie01.distributed_booking_system.entity.Game;
 import com.dpapie01.distributed_booking_system.entity.GameSlot;
 import com.dpapie01.distributed_booking_system.entity.Pitch;
 import com.dpapie01.distributed_booking_system.entity.User;
-import com.dpapie01.distributed_booking_system.enums.GameSlotStatus;
-import com.dpapie01.distributed_booking_system.enums.GameStatus;
-import com.dpapie01.distributed_booking_system.enums.PaymentType;
-import com.dpapie01.distributed_booking_system.enums.RefundPolicy;
+import com.dpapie01.distributed_booking_system.enums.*;
 import com.dpapie01.distributed_booking_system.mapper.GameMapper;
-import com.dpapie01.distributed_booking_system.repository.GameRepository;
-import com.dpapie01.distributed_booking_system.repository.GameSlotRepository;
-import com.dpapie01.distributed_booking_system.repository.PitchRepository;
-import com.dpapie01.distributed_booking_system.repository.UserRepository;
+import com.dpapie01.distributed_booking_system.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -25,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -35,6 +31,7 @@ public class GameService {
     private final PitchRepository pitchRepository;
     private final UserRepository userRepository;
     private final GameMapper gameMapper;
+    private final BookingRepository bookingRepository;
 
     public List<GameResponseDTO> filterGames(GameFilterDTO filter) {
         return gameRepository.filterGames(
@@ -174,6 +171,20 @@ public class GameService {
 
         game.setStatus(GameStatus.CANCELLED);
         gameRepository.save(game);
+    }
+
+    public List<GameAttendeeDTO> getAttendees(Long gameId) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not found"));
+        return bookingRepository.findBySlot_GameAndStatus(game, BookingStatus.CONFIRMED).stream()
+                .map(booking -> new GameAttendeeDTO(
+                        booking.getUser().getId(),
+                        booking.getUser().getFirstName(),
+                        booking.getUser().getLastName(),
+                        booking.getUser().getUsername(),
+                        booking.getUser().getEmail())
+                )
+                .toList();
     }
 
 }

@@ -1,19 +1,23 @@
 package com.dpapie01.distributed_booking_system.service;
 
+import com.dpapie01.distributed_booking_system.dto.GameAttendeeDTO;
 import com.dpapie01.distributed_booking_system.dto.GameFilterDTO;
 import com.dpapie01.distributed_booking_system.dto.GameRequestDTO;
 import com.dpapie01.distributed_booking_system.dto.GameResponseDTO;
+import com.dpapie01.distributed_booking_system.entity.Booking;
 import com.dpapie01.distributed_booking_system.entity.Game;
 import com.dpapie01.distributed_booking_system.entity.GameSlot;
 import com.dpapie01.distributed_booking_system.entity.Location;
 import com.dpapie01.distributed_booking_system.entity.Pitch;
 import com.dpapie01.distributed_booking_system.entity.User;
+import com.dpapie01.distributed_booking_system.enums.BookingStatus;
 import com.dpapie01.distributed_booking_system.enums.GameGenderOption;
 import com.dpapie01.distributed_booking_system.enums.GameSlotStatus;
 import com.dpapie01.distributed_booking_system.enums.GameStatus;
 import com.dpapie01.distributed_booking_system.enums.GameType;
 import com.dpapie01.distributed_booking_system.enums.PaymentType;
 import com.dpapie01.distributed_booking_system.mapper.GameMapper;
+import com.dpapie01.distributed_booking_system.repository.BookingRepository;
 import com.dpapie01.distributed_booking_system.repository.GameRepository;
 import com.dpapie01.distributed_booking_system.repository.GameSlotRepository;
 import com.dpapie01.distributed_booking_system.repository.PitchRepository;
@@ -53,6 +57,8 @@ class GameServiceTest {
     private UserRepository userRepository;
     @Mock
     private GameMapper gameMapper;
+    @Mock
+    private BookingRepository bookingRepository;
 
     @InjectMocks
     private GameService gameService;
@@ -404,5 +410,57 @@ class GameServiceTest {
 
         assertEquals(GameStatus.CANCELLED, game.getStatus());
         verify(gameRepository).save(game);
+    }
+
+    @Test
+    void testGetAttendees_NotFound() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.empty());
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> gameService.getAttendees(1L));
+
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+        assertEquals("Game not found", ex.getReason());
+    }
+
+    @Test
+    void testGetAttendees_NoBookings() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(bookingRepository.findBySlot_GameAndStatus(game, BookingStatus.CONFIRMED)).thenReturn(List.of());
+
+        List<GameAttendeeDTO> result = gameService.getAttendees(1L);
+
+        assertEquals(0, result.size());
+    }
+
+    @Test
+    void testGetAttendees_ReturnsConfirmedBookings() {
+        User attendee = new User();
+        attendee.setId(2L);
+        attendee.setFirstName("Jane");
+        attendee.setLastName("Doe");
+        attendee.setUsername("janedoe");
+        attendee.setEmail("jane@example.com");
+
+        GameSlot slot = new GameSlot();
+        slot.setGame(game);
+        slot.setStatus(GameSlotStatus.BOOKED);
+
+        Booking booking = new Booking();
+        booking.setSlot(slot);
+        booking.setUser(attendee);
+        booking.setStatus(BookingStatus.CONFIRMED);
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(bookingRepository.findBySlot_GameAndStatus(game, BookingStatus.CONFIRMED)).thenReturn(List.of(booking));
+
+        List<GameAttendeeDTO> result = gameService.getAttendees(1L);
+
+        assertEquals(1, result.size());
+        assertEquals(2L, result.getFirst().getId());
+        assertEquals("Jane", result.getFirst().getFirstName());
+        assertEquals("Doe", result.getFirst().getLastName());
+        assertEquals("janedoe", result.getFirst().getUsername());
+        assertEquals("jane@example.com", result.getFirst().getEmail());
     }
 }

@@ -66,6 +66,25 @@
                     </tbody>
                 </table>
 
+                <h4 class="mt-4">Attendees</h4>
+                <table class="table table-bordered align-middle" th:if="${not #lists.isEmpty(attendees)}">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="attendee : ${attendees}">
+                            <td th:text="${attendee.firstName + ' ' + attendee.lastName}"></td>
+                            <td th:text="${attendee.username}"></td>
+                            <td th:text="${attendee.email}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p th:if="${#lists.isEmpty(attendees)}" class="text-muted">No one has booked into this game yet.</p>
+
             </div>
         </div>
     </div>

@@ -89,6 +89,7 @@ public class GameController {
     public String showGameDetails(@PathVariable Long id, Model model) {
         GameResponseDTO game = gameService.getGameDetails(id);
         model.addAttribute("game", game);
+        model.addAttribute("attendees", gameService.getAttendees(id));
         return "game-details";
     }
 
