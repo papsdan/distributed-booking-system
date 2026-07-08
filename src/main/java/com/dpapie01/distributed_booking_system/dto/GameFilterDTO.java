@@ -26,4 +26,5 @@ public class GameFilterDTO {
     private LocalDate gameDate;
 
     private BigDecimal maxPrice;
+    private boolean openSlotsOnly;
 }

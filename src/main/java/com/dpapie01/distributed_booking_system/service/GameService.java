@@ -40,7 +40,8 @@ public class GameService {
                         filter.getGameType(),
                         filter.getGenderOption(),
                         filter.getGameDate(),
-                        filter.getMaxPrice()).stream()
+                        filter.getMaxPrice(),
+                        filter.isOpenSlotsOnly()).stream()
                 .map(game -> gameMapper.toResponseDTO(game,
                         countSlots(game, GameSlotStatus.BOOKED),
                         countSlots(game, GameSlotStatus.AVAILABLE)))

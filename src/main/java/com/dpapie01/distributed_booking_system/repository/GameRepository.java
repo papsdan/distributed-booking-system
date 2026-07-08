@@ -21,12 +21,15 @@ public interface GameRepository extends JpaRepository<Game, Long> {
             "g.gameType = COALESCE(:gameType, g.gameType) AND " +
             "g.genderOption = COALESCE(:genderOption, g.genderOption) AND " +
             "g.gameDate = COALESCE(:gameDate, g.gameDate) AND " +
-            "g.price <= COALESCE(:maxPrice, g.price) " +
+            "g.price <= COALESCE(:maxPrice, g.price) AND " +
+            "(:openSlotsOnly = false OR (SELECT COUNT(gs) FROM GameSlot gs " +
+            "WHERE gs.game = g AND gs.status = com.dpapie01.distributed_booking_system.enums.GameSlotStatus.AVAILABLE) > 0) " +
             "ORDER BY g.gameDate, g.gameTime")
     List<Game> filterGames(@Param("city") String city,
                             @Param("area") String area,
                             @Param("gameType") GameType gameType,
                             @Param("genderOption") GameGenderOption genderOption,
                             @Param("gameDate") LocalDate gameDate,
-                            @Param("maxPrice") BigDecimal maxPrice);
+                            @Param("maxPrice") BigDecimal maxPrice,
+                            @Param("openSlotsOnly") boolean openSlotsOnly);
 }

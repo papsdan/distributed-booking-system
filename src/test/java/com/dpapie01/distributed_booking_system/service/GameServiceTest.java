@@ -225,7 +225,7 @@ class GameServiceTest {
         filter.setMaxPrice(BigDecimal.TEN);
 
         when(gameRepository.filterGames("London", "Finsbury Park", GameType.TEN_A_SIDE, GameGenderOption.MIXED,
-                LocalDate.of(2026, 7, 20), BigDecimal.TEN))
+                LocalDate.of(2026, 7, 20), BigDecimal.TEN, false))
                 .thenReturn(List.of(game));
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.BOOKED)).thenReturn(4L);
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(16L);
@@ -238,8 +238,24 @@ class GameServiceTest {
     }
 
     @Test
+    void testFilterGames_OpenSlotsOnly() {
+        GameFilterDTO filter = new GameFilterDTO();
+        filter.setOpenSlotsOnly(true);
+
+        when(gameRepository.filterGames(null, null, null, null, null, null, true)).thenReturn(List.of(game));
+        when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.BOOKED)).thenReturn(4L);
+        when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(16L);
+        when(gameMapper.toResponseDTO(game, 4, 16)).thenReturn(gameResponse);
+
+        List<GameResponseDTO> result = gameService.filterGames(filter);
+
+        assertEquals(1, result.size());
+        assertEquals("Sunday Game", result.getFirst().getTitle());
+    }
+
+    @Test
     void testFilterGames_NoFiltersSelected() {
-        when(gameRepository.filterGames(null, null, null, null, null, null)).thenReturn(List.of(game));
+        when(gameRepository.filterGames(null, null, null, null, null, null, false)).thenReturn(List.of(game));
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.BOOKED)).thenReturn(0L);
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(20L);
         when(gameMapper.toResponseDTO(game, 0, 20)).thenReturn(gameResponse);
