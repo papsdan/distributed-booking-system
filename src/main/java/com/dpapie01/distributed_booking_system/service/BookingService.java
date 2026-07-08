@@ -28,17 +28,12 @@ public class BookingService {
     private final UserRepository userRepository;
 
     public void bookSlot(Long gameId, String userEmail) {
-        Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not found"));
+        Game game = getGame(gameId);
+        User user = getUser(userEmail);
 
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-        if (game.getStatus() == GameStatus.CANCELLED) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This game has been cancelled");
-        }
-        if (LocalDateTime.of(game.getGameDate(), game.getGameTime()).isBefore(LocalDateTime.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This game has already taken place");
+        String blockReason = getJoinBlockReason(game,user);
+        if (blockReason != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, blockReason);
         }
 
         GameSlot slot = gameSlotRepository.findFirstByGameAndStatus(game, GameSlotStatus.AVAILABLE)
@@ -55,4 +50,34 @@ public class BookingService {
         bookingRepository.save(booking);
     }
 
+    public String getJoinBlockReason(Long gameId, String userEmail) {
+        Game game = getGame(gameId);
+        User user = getUser(userEmail);
+        return getJoinBlockReason(game, user);
+    }
+
+    private String getJoinBlockReason(Game game, User user) {
+        if (game.getStatus() == GameStatus.CANCELLED) {
+            return "This game has been cancelled";
+        }
+        if (LocalDateTime.of(game.getGameDate(), game.getGameTime()).isBefore(LocalDateTime.now())) {
+            return "This game has already taken place";
+        }
+        if (bookingRepository.existsBySlot_GameAndUserAndStatus(game, user, BookingStatus.CONFIRMED)) {
+            return "You have already booked into this game";
+        }
+        if (gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE) == 0) {
+            return "This game is full";
+        }
+        return null;
+    }
+
+    private Game getGame(Long gameId) {
+        return gameRepository.findById(gameId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not found"));
+    }
+    private User getUser(String userEmail) {
+        return userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    }
 }

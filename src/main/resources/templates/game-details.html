@@ -69,7 +69,11 @@
                 </table>
 
                 <form method="post" th:action="@{/games/{id}/book(id=${game.id})}" class="mb-4">
-                    <button type="submit" class="btn btn-primary">Join Game</button>
+                    <span th:title="${joinBlockReason}">
+                        <button type="submit" class="btn"
+                                th:classappend="${joinBlockReason != null} ? 'btn-secondary' : 'btn-primary'"
+                                th:disabled="${joinBlockReason != null}">Join Game</button>
+                    </span>
                 </form>
 
                 <h4 class="mt-4">Attendees</h4>

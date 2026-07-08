@@ -128,8 +128,7 @@ class BookingServiceTest {
     void testBookSlot_GameFull() {
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
-        when(gameSlotRepository.findFirstByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(Optional.empty());
-
+        when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(0L);
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> bookingService.bookSlot(1L, "jane@example.com"));
 
@@ -138,9 +137,22 @@ class BookingServiceTest {
     }
 
     @Test
+    void testBookSlot_AlreadyBooked() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(bookingRepository.existsBySlot_GameAndUserAndStatus(game,user,BookingStatus.CONFIRMED)).thenReturn(true);
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> bookingService.bookSlot(1L, "jane@example.com"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("You have already booked into this game", ex.getReason());
+    }
+
+    @Test
     void testBookSlot_Valid() {
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(10L);
         when(gameSlotRepository.findFirstByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(Optional.of(slot));
 
         bookingService.bookSlot(1L, "jane@example.com");

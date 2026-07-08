@@ -90,10 +90,12 @@ public class GameController {
     @GetMapping("/{id}")
     public String showGameDetails(@PathVariable Long id,
                                    @RequestParam(name = "bookSuccess", defaultValue = "false") boolean bookSuccess,
-                                   Model model) {
+                                   Model model,
+                                   @AuthenticationPrincipal UserDetails userDetails) {
         GameResponseDTO game = gameService.getGameDetails(id);
         model.addAttribute("game", game);
         model.addAttribute("attendees", gameService.getAttendees(id));
+        model.addAttribute("joinBlockReason", bookingService.getJoinBlockReason(id, userDetails.getUsername()));
         if (bookSuccess) {
             model.addAttribute("successMessage", "You're booked in!");
         }
