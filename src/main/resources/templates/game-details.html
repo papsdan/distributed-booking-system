@@ -16,6 +16,7 @@
                 </div>
 
                 <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+                <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
                 <p th:if="${game.description}" th:text="${game.description}"></p>
 

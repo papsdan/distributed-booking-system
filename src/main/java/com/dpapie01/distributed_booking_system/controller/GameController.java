@@ -20,6 +20,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -103,12 +104,13 @@ public class GameController {
     }
 
     @PostMapping("/{id}/book")
-    public String bookGame(@PathVariable Long id, Model model, @AuthenticationPrincipal UserDetails userDetails) {
+    public String bookGame(@PathVariable Long id, RedirectAttributes redirectAttributes,
+                            @AuthenticationPrincipal UserDetails userDetails) {
         try {
             bookingService.bookSlot(id, userDetails.getUsername());
             return "redirect:/games/" + id + "?bookSuccess=true";
         } catch (ResponseStatusException e) {
-            model.addAttribute("errorMessage", e.getReason());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getReason());
             return "redirect:/games/" + id;
         }
     }
@@ -157,12 +159,13 @@ public class GameController {
     }
 
     @PostMapping("/{id}/cancel")
-    public String cancelGame(@PathVariable Long id, Model model, @AuthenticationPrincipal UserDetails userDetails) {
+    public String cancelGame(@PathVariable Long id, RedirectAttributes redirectAttributes,
+                              @AuthenticationPrincipal UserDetails userDetails) {
         try {
             gameService.cancelGame(id, userDetails.getUsername());
             return "redirect:/games?cancelSuccess=true";
         } catch (ResponseStatusException e) {
-            model.addAttribute("errorMessage", e.getReason());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getReason());
             return "redirect:/games";
         }
     }

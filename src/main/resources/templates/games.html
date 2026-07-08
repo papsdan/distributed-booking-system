@@ -14,6 +14,7 @@
         </div>
 
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
         <form method="get" th:action="@{/games}" th:object="${gameFilterDto}" class="row g-2 mb-4">
             <div class="col-md-2">
