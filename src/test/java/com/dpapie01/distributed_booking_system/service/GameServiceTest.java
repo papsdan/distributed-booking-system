@@ -180,7 +180,7 @@ class GameServiceTest {
 
     @Test
     void testCreateGame_PaidWithZeroPrice() {
-        gameRequest.setPaymentType(PaymentType.PAID_ONLINE);
+        gameRequest.setPaymentType(PaymentType.CASH);
         when(userRepository.findByEmail("jon@example.com")).thenReturn(Optional.of(organiser));
         when(pitchRepository.findById(1L)).thenReturn(Optional.of(pitch));
 
