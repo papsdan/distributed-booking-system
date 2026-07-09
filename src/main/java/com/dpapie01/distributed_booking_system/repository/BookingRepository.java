@@ -13,4 +13,5 @@ import java.util.List;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findBySlot_GameAndStatus(Game game, BookingStatus status);
     boolean existsBySlot_GameAndUserAndStatus(Game game, User user, BookingStatus status);
+    List<Booking> findByUserAndStatus(User user, BookingStatus status);
 }

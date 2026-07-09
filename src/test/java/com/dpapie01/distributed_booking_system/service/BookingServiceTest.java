@@ -1,5 +1,6 @@
 package com.dpapie01.distributed_booking_system.service;
 
+import com.dpapie01.distributed_booking_system.entity.Booking;
 import com.dpapie01.distributed_booking_system.entity.Game;
 import com.dpapie01.distributed_booking_system.entity.GameSlot;
 import com.dpapie01.distributed_booking_system.entity.Profile;
@@ -28,6 +29,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -64,6 +66,7 @@ class BookingServiceTest {
         game.setId(1L);
         game.setGameDate(LocalDate.of(2026, 7, 20));
         game.setGameTime(LocalTime.of(18, 0));
+        game.setDurationMinutes(60);
         game.setGameType(GameType.TEN_A_SIDE);
         game.setGenderOption(GameGenderOption.MIXED);
         game.setMaxPlayers(10);
@@ -284,6 +287,63 @@ class BookingServiceTest {
                         && booking.getUser() == user
                         && booking.getStatus() == BookingStatus.CONFIRMED
                         && booking.getConfirmedAt() != null));
+    }
+
+    void testBookSlot_OverlappingBookingBlocksJoin() {
+        Game otherGame = new Game();
+        otherGame.setId(2L);
+        otherGame.setGameDate(LocalDate.of(2026, 7, 20));
+        otherGame.setGameTime(LocalTime.of(18, 30));
+        otherGame.setDurationMinutes(60);
+        otherGame.setStatus(GameStatus.OPEN);
+
+        GameSlot otherSlot = new GameSlot();
+        otherSlot.setGame(otherGame);
+
+        Booking otherBooking = new Booking();
+        otherBooking.setSlot(otherSlot);
+        otherBooking.setUser(user);
+        otherBooking.setStatus(BookingStatus.CONFIRMED);
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+        when(bookingRepository.findByUserAndStatus(user, BookingStatus.CONFIRMED)).thenReturn(List.of(otherBooking));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> bookingService.bookSlot(1L, "jane@example.com"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("You already have a booking that overlaps with this game's time", ex.getReason());
+    }
+
+    @Test
+    void testBookSlot_NonOverlappingBookingAllowsJoin() {
+        Game otherGame = new Game();
+        otherGame.setId(2L);
+        otherGame.setGameDate(LocalDate.of(2026, 7, 20));
+        otherGame.setGameTime(LocalTime.of(20, 0));
+        otherGame.setDurationMinutes(60);
+        otherGame.setStatus(GameStatus.OPEN);
+
+        GameSlot otherSlot = new GameSlot();
+        otherSlot.setGame(otherGame);
+
+        Booking otherBooking = new Booking();
+        otherBooking.setSlot(otherSlot);
+        otherBooking.setUser(user);
+        otherBooking.setStatus(BookingStatus.CONFIRMED);
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+        when(bookingRepository.findByUserAndStatus(user, BookingStatus.CONFIRMED)).thenReturn(List.of(otherBooking));
+        when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(10L);
+        when(gameSlotRepository.findFirstByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(Optional.of(slot));
+
+        bookingService.bookSlot(1L, "jane@example.com");
+
+        assertEquals(GameSlotStatus.BOOKED, slot.getStatus());
     }
 
 }

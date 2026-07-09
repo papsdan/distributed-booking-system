@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -76,11 +78,35 @@ public class BookingService {
         if (bookingRepository.existsBySlot_GameAndUserAndStatus(game, user, BookingStatus.CONFIRMED)) {
             return "You have already booked into this game";
         }
+        if (hasOverlappingBooking(game, user)) {
+            return "You already have a booking that overlaps with this game's time";
+        }
         if (gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE) == 0) {
             return "This game is full";
         }
         return null;
     }
+
+    private boolean hasOverlappingBooking(Game game, User user) {
+        LocalDateTime newBookingGameStart =  LocalDateTime.of(game.getGameDate(), game.getGameTime());
+        LocalDateTime newBookingGameEnd = newBookingGameStart.plusMinutes(game.getDurationMinutes());
+
+        System.out.println("NEW BOOKING GAME START " +  newBookingGameStart);
+        System.out.println("NEW BOOKING GAME END " +  newBookingGameEnd);
+
+        return bookingRepository.findByUserAndStatus(user, BookingStatus.CONFIRMED).stream()
+                .map(booking -> booking.getSlot().getGame())
+                .filter(otherGame -> otherGame.getStatus() != GameStatus.CANCELLED)
+                .anyMatch(otherGame -> {
+                            LocalDateTime currentBookingGameStart = LocalDateTime.of(otherGame.getGameDate(), otherGame.getGameTime());
+                            LocalDateTime currentBookingGameEnd = currentBookingGameStart.plusMinutes(otherGame.getDurationMinutes());
+                            System.out.println("CURRENT BOOKING GAME START " +  currentBookingGameStart);
+                            System.out.println("CURRENT BOOKING GAME END " +  currentBookingGameEnd);
+                            return newBookingGameEnd.isAfter(currentBookingGameStart) && newBookingGameStart.isBefore(currentBookingGameEnd);
+                        }
+                );
+    }
+
 
     private Game getGame(Long gameId) {
         return gameRepository.findById(gameId)
