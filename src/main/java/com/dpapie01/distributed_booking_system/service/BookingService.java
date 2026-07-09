@@ -1,5 +1,6 @@
 package com.dpapie01.distributed_booking_system.service;
 
+import com.dpapie01.distributed_booking_system.dto.BookingResponeDTO;
 import com.dpapie01.distributed_booking_system.entity.Booking;
 import com.dpapie01.distributed_booking_system.entity.Game;
 import com.dpapie01.distributed_booking_system.entity.GameSlot;
@@ -9,6 +10,7 @@ import com.dpapie01.distributed_booking_system.enums.BookingStatus;
 import com.dpapie01.distributed_booking_system.enums.GameGenderOption;
 import com.dpapie01.distributed_booking_system.enums.GameSlotStatus;
 import com.dpapie01.distributed_booking_system.enums.GameStatus;
+import com.dpapie01.distributed_booking_system.mapper.BookingMapper;
 import com.dpapie01.distributed_booking_system.repository.BookingRepository;
 import com.dpapie01.distributed_booking_system.repository.GameRepository;
 import com.dpapie01.distributed_booking_system.repository.GameSlotRepository;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -30,6 +33,7 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
+    private final BookingMapper bookingMapper;
 
     public void bookSlot(Long gameId, String userEmail) {
         Game game = getGame(gameId);
@@ -107,5 +111,12 @@ public class BookingService {
     private User getUser(String userEmail) {
         return userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    }
+
+    public List<BookingResponeDTO> getMyBookings(String userEmail) {
+        User user = getUser(userEmail);
+        return bookingRepository.findByUser(user).stream()
+                .map(bookingMapper::toResponseDTO)
+                .toList();
     }
 }
