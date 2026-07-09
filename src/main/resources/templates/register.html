@@ -58,7 +58,7 @@
 
                     <div class="mb-3">
                         <label for="gender" class="form-label">Gender</label>
-                        <select th:field="*{gender}" class="form-select">
+                        <select id="gender" th:field="*{gender}" class="form-select">
                             <option value="">-- Select Gender --</option>
                             <option th:each="g : ${genders}"
                                     th:value="${g}"
@@ -67,6 +67,7 @@
                         <span th:if="${#fields.hasErrors('gender')}"
                               th:errors="*{gender}"
                               class="text-danger small"></span>
+                        <div id="genderHint" class="form-text"></div>
                     </div>
 
                     <div class="mb-3">
@@ -93,5 +94,19 @@
             </div>
         </div>
     </div>
+
+    <script>
+        const genderSelect = document.getElementById('gender');
+        const genderHint = document.getElementById('genderHint');
+
+        function syncGenderHint() {
+            genderHint.textContent = genderSelect.value === 'PREFER_NOT_TO_SAY'
+                ? 'You\'ll only be able to join Mixed games.'
+                : '';
+        }
+
+        genderSelect.addEventListener('change', syncGenderHint);
+        syncGenderHint();
+    </script>
 </body>
 </html>

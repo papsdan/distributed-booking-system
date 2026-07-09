@@ -2,8 +2,10 @@ package com.dpapie01.distributed_booking_system.service;
 
 import com.dpapie01.distributed_booking_system.entity.Game;
 import com.dpapie01.distributed_booking_system.entity.GameSlot;
+import com.dpapie01.distributed_booking_system.entity.Profile;
 import com.dpapie01.distributed_booking_system.entity.User;
 import com.dpapie01.distributed_booking_system.enums.BookingStatus;
+import com.dpapie01.distributed_booking_system.enums.Gender;
 import com.dpapie01.distributed_booking_system.enums.GameGenderOption;
 import com.dpapie01.distributed_booking_system.enums.GameSlotStatus;
 import com.dpapie01.distributed_booking_system.enums.GameStatus;
@@ -12,6 +14,7 @@ import com.dpapie01.distributed_booking_system.enums.PaymentType;
 import com.dpapie01.distributed_booking_system.repository.BookingRepository;
 import com.dpapie01.distributed_booking_system.repository.GameRepository;
 import com.dpapie01.distributed_booking_system.repository.GameSlotRepository;
+import com.dpapie01.distributed_booking_system.repository.ProfileRepository;
 import com.dpapie01.distributed_booking_system.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +47,8 @@ class BookingServiceTest {
     private BookingRepository bookingRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private ProfileRepository profileRepository;
 
     @InjectMocks
     private BookingService bookingService;
@@ -51,6 +56,7 @@ class BookingServiceTest {
     private Game game;
     private User user;
     private GameSlot slot;
+    private Profile profile;
 
     @BeforeEach
     void setUp() {
@@ -73,6 +79,12 @@ class BookingServiceTest {
         slot.setId(5L);
         slot.setGame(game);
         slot.setStatus(GameSlotStatus.AVAILABLE);
+
+        profile = new Profile();
+        profile.setUser(user);
+        profile.setGender(Gender.WOMAN);
+
+
     }
 
     @Test
@@ -125,9 +137,115 @@ class BookingServiceTest {
     }
 
     @Test
+    void testBookSlot_GenderIneligible_WomanBlockedFromMensGame() {
+        game.setGenderOption(GameGenderOption.MENS);
+        profile.setGender(Gender.WOMAN);
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> bookingService.bookSlot(1L, "jane@example.com"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("This game is open to Men only", ex.getReason());
+    }
+
+    @Test
+    void testBookSlot_GenderIneligible_ManBlockedFromWomensGame() {
+        game.setGenderOption(GameGenderOption.WOMENS);
+        profile.setGender(Gender.MAN);
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> bookingService.bookSlot(1L, "jane@example.com"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("This game is open to Women only", ex.getReason());
+    }
+
+    @Test
+    void testBookSlot_GenderIneligible_PreferNotToSayBlockedFromMensGame() {
+        game.setGenderOption(GameGenderOption.MENS);
+        profile.setGender(Gender.PREFER_NOT_TO_SAY);
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> bookingService.bookSlot(1L, "jane@example.com"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("This game is open to Men only", ex.getReason());
+    }
+
+    @Test
+    void testBookSlot_GenderIneligible_PreferNotToSayBlockedFromWomensGame() {
+        game.setGenderOption(GameGenderOption.WOMENS);
+        profile.setGender(Gender.PREFER_NOT_TO_SAY);
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> bookingService.bookSlot(1L, "jane@example.com"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("This game is open to Women only", ex.getReason());
+    }
+
+    @Test
+    void testBookSlot_PreferNotToSayEligibleForMixedGame() {
+        game.setGenderOption(GameGenderOption.MIXED);
+        profile.setGender(Gender.PREFER_NOT_TO_SAY);
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+        when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(10L);
+        when(gameSlotRepository.findFirstByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(Optional.of(slot));
+
+        bookingService.bookSlot(1L, "jane@example.com");
+
+        assertEquals(GameSlotStatus.BOOKED, slot.getStatus());
+    }
+
+    @Test
+    void testBookSlot_NonBinaryEligibleForMensGame() {
+        game.setGenderOption(GameGenderOption.MENS);
+        profile.setGender(Gender.NON_BINARY);
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+        when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(10L);
+        when(gameSlotRepository.findFirstByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(Optional.of(slot));
+
+        bookingService.bookSlot(1L, "jane@example.com");
+
+        assertEquals(GameSlotStatus.BOOKED, slot.getStatus());
+    }
+
+    @Test
+    void testBookSlot_NonBinaryEligibleForWomensGame() {
+        game.setGenderOption(GameGenderOption.WOMENS);
+        profile.setGender(Gender.NON_BINARY);
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+        when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(10L);
+        when(gameSlotRepository.findFirstByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(Optional.of(slot));
+
+        bookingService.bookSlot(1L, "jane@example.com");
+
+        assertEquals(GameSlotStatus.BOOKED, slot.getStatus());
+    }
+
+    @Test
     void testBookSlot_GameFull() {
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(0L);
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> bookingService.bookSlot(1L, "jane@example.com"));
@@ -140,6 +258,7 @@ class BookingServiceTest {
     void testBookSlot_AlreadyBooked() {
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
         when(bookingRepository.existsBySlot_GameAndUserAndStatus(game,user,BookingStatus.CONFIRMED)).thenReturn(true);
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> bookingService.bookSlot(1L, "jane@example.com"));
@@ -152,6 +271,7 @@ class BookingServiceTest {
     void testBookSlot_Valid() {
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(10L);
         when(gameSlotRepository.findFirstByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(Optional.of(slot));
 

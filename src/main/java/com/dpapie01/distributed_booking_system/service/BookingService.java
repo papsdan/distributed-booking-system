@@ -3,13 +3,16 @@ package com.dpapie01.distributed_booking_system.service;
 import com.dpapie01.distributed_booking_system.entity.Booking;
 import com.dpapie01.distributed_booking_system.entity.Game;
 import com.dpapie01.distributed_booking_system.entity.GameSlot;
+import com.dpapie01.distributed_booking_system.entity.Profile;
 import com.dpapie01.distributed_booking_system.entity.User;
 import com.dpapie01.distributed_booking_system.enums.BookingStatus;
+import com.dpapie01.distributed_booking_system.enums.GameGenderOption;
 import com.dpapie01.distributed_booking_system.enums.GameSlotStatus;
 import com.dpapie01.distributed_booking_system.enums.GameStatus;
 import com.dpapie01.distributed_booking_system.repository.BookingRepository;
 import com.dpapie01.distributed_booking_system.repository.GameRepository;
 import com.dpapie01.distributed_booking_system.repository.GameSlotRepository;
+import com.dpapie01.distributed_booking_system.repository.ProfileRepository;
 import com.dpapie01.distributed_booking_system.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,6 +29,7 @@ public class BookingService {
     private final GameSlotRepository gameSlotRepository;
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
+    private final ProfileRepository profileRepository;
 
     public void bookSlot(Long gameId, String userEmail) {
         Game game = getGame(gameId);
@@ -62,6 +66,12 @@ public class BookingService {
         }
         if (LocalDateTime.of(game.getGameDate(), game.getGameTime()).isBefore(LocalDateTime.now())) {
             return "This game has already taken place";
+        }
+        Profile profile = profileRepository.findByUser(user)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile not found"));
+        if (!profile.getGender().isEligibleFor(game.getGenderOption())) {
+            String openTo = game.getGenderOption() == GameGenderOption.MENS ? "Men" : "Women";
+            return "This game is open to " + openTo + " only";
         }
         if (bookingRepository.existsBySlot_GameAndUserAndStatus(game, user, BookingStatus.CONFIRMED)) {
             return "You have already booked into this game";
