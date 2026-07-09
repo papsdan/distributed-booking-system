@@ -289,6 +289,7 @@ class BookingServiceTest {
                         && booking.getConfirmedAt() != null));
     }
 
+    @Test
     void testBookSlot_OverlappingBookingBlocksJoin() {
         Game otherGame = new Game();
         otherGame.setId(2L);

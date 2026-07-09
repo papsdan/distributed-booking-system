@@ -20,8 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -91,22 +89,16 @@ public class BookingService {
         LocalDateTime newBookingGameStart =  LocalDateTime.of(game.getGameDate(), game.getGameTime());
         LocalDateTime newBookingGameEnd = newBookingGameStart.plusMinutes(game.getDurationMinutes());
 
-        System.out.println("NEW BOOKING GAME START " +  newBookingGameStart);
-        System.out.println("NEW BOOKING GAME END " +  newBookingGameEnd);
-
         return bookingRepository.findByUserAndStatus(user, BookingStatus.CONFIRMED).stream()
                 .map(booking -> booking.getSlot().getGame())
                 .filter(otherGame -> otherGame.getStatus() != GameStatus.CANCELLED)
                 .anyMatch(otherGame -> {
                             LocalDateTime currentBookingGameStart = LocalDateTime.of(otherGame.getGameDate(), otherGame.getGameTime());
                             LocalDateTime currentBookingGameEnd = currentBookingGameStart.plusMinutes(otherGame.getDurationMinutes());
-                            System.out.println("CURRENT BOOKING GAME START " +  currentBookingGameStart);
-                            System.out.println("CURRENT BOOKING GAME END " +  currentBookingGameEnd);
                             return newBookingGameEnd.isAfter(currentBookingGameStart) && newBookingGameStart.isBefore(currentBookingGameEnd);
                         }
                 );
     }
-
 
     private Game getGame(Long gameId) {
         return gameRepository.findById(gameId)
