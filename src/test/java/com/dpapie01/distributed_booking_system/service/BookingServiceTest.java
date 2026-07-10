@@ -1,5 +1,6 @@
 package com.dpapie01.distributed_booking_system.service;
 
+import com.dpapie01.distributed_booking_system.dto.BookingResponeDTO;
 import com.dpapie01.distributed_booking_system.entity.Booking;
 import com.dpapie01.distributed_booking_system.entity.Game;
 import com.dpapie01.distributed_booking_system.entity.GameSlot;
@@ -12,6 +13,7 @@ import com.dpapie01.distributed_booking_system.enums.GameSlotStatus;
 import com.dpapie01.distributed_booking_system.enums.GameStatus;
 import com.dpapie01.distributed_booking_system.enums.GameType;
 import com.dpapie01.distributed_booking_system.enums.PaymentType;
+import com.dpapie01.distributed_booking_system.mapper.BookingMapper;
 import com.dpapie01.distributed_booking_system.repository.BookingRepository;
 import com.dpapie01.distributed_booking_system.repository.GameRepository;
 import com.dpapie01.distributed_booking_system.repository.GameSlotRepository;
@@ -51,6 +53,8 @@ class BookingServiceTest {
     private UserRepository userRepository;
     @Mock
     private ProfileRepository profileRepository;
+    @Mock
+    private BookingMapper bookingMapper;
 
     @InjectMocks
     private BookingService bookingService;
@@ -345,6 +349,56 @@ class BookingServiceTest {
         bookingService.bookSlot(1L, "jane@example.com");
 
         assertEquals(GameSlotStatus.BOOKED, slot.getStatus());
+    }
+
+    @Test
+    void testGetMyBookings_UserNotFound() {
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.empty());
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> bookingService.getMyBookings("jane@example.com"));
+
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+        assertEquals("User not found", ex.getReason());
+    }
+
+    @Test
+    void testGetMyBookings_NoBookings() {
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(bookingRepository.findByUser(user)).thenReturn(List.of());
+
+        List<BookingResponeDTO> result = bookingService.getMyBookings("jane@example.com");
+
+        assertEquals(0, result.size());
+    }
+
+    @Test
+    void testGetMyBookings_ReturnsBookings() {
+        Booking booking1 = new Booking();
+        booking1.setId(10L);
+        booking1.setSlot(slot);
+        booking1.setUser(user);
+        booking1.setStatus(BookingStatus.CONFIRMED);
+
+        Booking booking2 = new Booking();
+        booking2.setId(11L);
+        booking2.setSlot(slot);
+        booking2.setUser(user);
+        booking2.setStatus(BookingStatus.WITHDRAWN);
+
+        BookingResponeDTO dto1 = new BookingResponeDTO();
+        dto1.setId(10L);
+        BookingResponeDTO dto2 = new BookingResponeDTO();
+        dto2.setId(11L);
+
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(bookingRepository.findByUser(user)).thenReturn(List.of(booking1, booking2));
+        when(bookingMapper.toResponseDTO(booking1)).thenReturn(dto1);
+        when(bookingMapper.toResponseDTO(booking2)).thenReturn(dto2);
+
+        List<BookingResponeDTO> result = bookingService.getMyBookings("jane@example.com");
+
+        assertEquals(List.of(dto1, dto2), result);
     }
 
 }
