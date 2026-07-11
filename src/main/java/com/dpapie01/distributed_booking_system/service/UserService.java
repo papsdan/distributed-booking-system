@@ -2,11 +2,13 @@ package com.dpapie01.distributed_booking_system.service;
 
 import com.dpapie01.distributed_booking_system.dto.RegisterRequestDTO;
 import com.dpapie01.distributed_booking_system.dto.UserResponseDTO;
+import com.dpapie01.distributed_booking_system.entity.Credit;
 import com.dpapie01.distributed_booking_system.entity.Location;
 import com.dpapie01.distributed_booking_system.entity.Profile;
 import com.dpapie01.distributed_booking_system.entity.User;
 import com.dpapie01.distributed_booking_system.enums.Role;
 import com.dpapie01.distributed_booking_system.mapper.UserMapper;
+import com.dpapie01.distributed_booking_system.repository.CreditRepository;
 import com.dpapie01.distributed_booking_system.repository.LocationRepository;
 import com.dpapie01.distributed_booking_system.repository.ProfileRepository;
 import com.dpapie01.distributed_booking_system.repository.UserRepository;
@@ -20,9 +22,12 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class UserService {
 
+    private static final int SIGNUP_CREDIT_AMOUNT = 100;
+
     private final UserRepository userRepository;
     private final LocationRepository locationRepository;
     private final ProfileRepository profileRepository;
+    private final CreditRepository creditRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -52,6 +57,12 @@ public class UserService {
         profile.setPreferredLocation(location);
         profile.setGender(dto.getGender());
         profileRepository.save(profile);
+
+        Credit signupCredit = new Credit();
+        signupCredit.setUser(savedUser);
+        signupCredit.setAmount(SIGNUP_CREDIT_AMOUNT);
+        signupCredit.setReason("Signup Credits");
+        creditRepository.save(signupCredit);
 
         return userMapper.toResponseDTO(savedUser);
     }

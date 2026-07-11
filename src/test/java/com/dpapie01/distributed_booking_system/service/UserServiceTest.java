@@ -7,6 +7,7 @@ import com.dpapie01.distributed_booking_system.entity.User;
 import com.dpapie01.distributed_booking_system.enums.Gender;
 import com.dpapie01.distributed_booking_system.enums.Role;
 import com.dpapie01.distributed_booking_system.mapper.UserMapper;
+import com.dpapie01.distributed_booking_system.repository.CreditRepository;
 import com.dpapie01.distributed_booking_system.repository.LocationRepository;
 import com.dpapie01.distributed_booking_system.repository.ProfileRepository;
 import com.dpapie01.distributed_booking_system.repository.UserRepository;
@@ -36,6 +37,8 @@ class UserServiceTest {
     private LocationRepository locationRepository;
     @Mock
     private ProfileRepository profileRepository;
+    @Mock
+    private CreditRepository creditRepository;
     @Mock
     private UserMapper userMapper;
     @Mock
@@ -103,6 +106,8 @@ class UserServiceTest {
         verify(userRepository).save(any(User.class));
         verify(profileRepository).save(any());
         verify(locationRepository).findById(1L);
+        verify(creditRepository).save(argThat(credit ->
+                credit.getUser() == savedUser && credit.getAmount() == 100));
     }
 
     @Test
