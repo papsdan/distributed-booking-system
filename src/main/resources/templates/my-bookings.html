@@ -34,6 +34,10 @@
                     <td th:text="${booking.status}"></td>
                     <td>
                         <a th:href="@{/games/{id}(id=${booking.gameId})}" class="btn btn-outline-primary btn-sm">View</a>
+                        <form th:if="${booking.status.name() == 'CONFIRMED'}" method="post"
+                              th:action="@{/my-bookings/{id}/withdraw(id=${booking.gameId})}" class="d-inline">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Withdraw</button>
+                        </form>
                     </td>
                 </tr>
             </tbody>

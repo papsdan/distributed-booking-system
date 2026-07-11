@@ -30,11 +30,13 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
@@ -379,12 +381,19 @@ class BookingServiceTest {
         booking1.setSlot(slot);
         booking1.setUser(user);
         booking1.setStatus(BookingStatus.CONFIRMED);
+        booking1.setCreatedAt(LocalDateTime.of(2026, 7, 1, 10, 0));
+
+        Game otherGame = new Game();
+        otherGame.setId(2L);
+        GameSlot otherSlot = new GameSlot();
+        otherSlot.setGame(otherGame);
 
         Booking booking2 = new Booking();
         booking2.setId(11L);
-        booking2.setSlot(slot);
+        booking2.setSlot(otherSlot);
         booking2.setUser(user);
         booking2.setStatus(BookingStatus.WITHDRAWN);
+        booking2.setCreatedAt(LocalDateTime.of(2026, 7, 1, 10, 0));
 
         BookingResponeDTO dto1 = new BookingResponeDTO();
         dto1.setId(10L);
@@ -399,6 +408,94 @@ class BookingServiceTest {
         List<BookingResponeDTO> result = bookingService.getMyBookings("jane@example.com");
 
         assertEquals(List.of(dto1, dto2), result);
+    }
+
+    @Test
+    void testWithdrawSlot_GameNotFound() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.empty());
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> bookingService.withdrawSlot(1L, "jane@example.com"));
+
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+        assertEquals("Game not found", ex.getReason());
+    }
+
+    @Test
+    void testWithdrawSlot_UserNotFound() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.empty());
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> bookingService.withdrawSlot(1L, "jane@example.com"));
+
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+        assertEquals("User not found", ex.getReason());
+    }
+
+    @Test
+    void testWithdrawSlot_NoConfirmedBooking() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.CONFIRMED))
+                .thenReturn(Optional.empty());
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> bookingService.withdrawSlot(1L, "jane@example.com"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("You don't have a booking for this game", ex.getReason());
+    }
+
+    @Test
+    void testWithdrawSlot_Valid() {
+        slot.setStatus(GameSlotStatus.BOOKED);
+        Booking booking = new Booking();
+        booking.setId(10L);
+        booking.setSlot(slot);
+        booking.setUser(user);
+        booking.setStatus(BookingStatus.CONFIRMED);
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.CONFIRMED))
+                .thenReturn(Optional.of(booking));
+
+        bookingService.withdrawSlot(1L, "jane@example.com");
+
+        assertEquals(BookingStatus.WITHDRAWN, booking.getStatus());
+        assertEquals(GameSlotStatus.AVAILABLE, slot.getStatus());
+        verify(bookingRepository).save(argThat(b ->
+                b.getStatus() == BookingStatus.WITHDRAWN && b.getWithdrawnAt() != null));
+        verify(gameSlotRepository).save(slot);
+    }
+
+    @Test
+    void testGetMyBookings_SupersededWithdrawalHidden() {
+        Booking oldWithdrawn = new Booking();
+        oldWithdrawn.setId(20L);
+        oldWithdrawn.setSlot(slot);
+        oldWithdrawn.setUser(user);
+        oldWithdrawn.setStatus(BookingStatus.WITHDRAWN);
+        oldWithdrawn.setCreatedAt(LocalDateTime.of(2026, 7, 1, 10, 0));
+
+        Booking newConfirmed = new Booking();
+        newConfirmed.setId(21L);
+        newConfirmed.setSlot(slot);
+        newConfirmed.setUser(user);
+        newConfirmed.setStatus(BookingStatus.CONFIRMED);
+        newConfirmed.setCreatedAt(LocalDateTime.of(2026, 7, 2, 10, 0));
+
+        BookingResponeDTO confirmedDto = new BookingResponeDTO();
+        confirmedDto.setId(21L);
+
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(bookingRepository.findByUser(user)).thenReturn(List.of(oldWithdrawn, newConfirmed));
+        when(bookingMapper.toResponseDTO(newConfirmed)).thenReturn(confirmedDto);
+
+        List<BookingResponeDTO> result = bookingService.getMyBookings("jane@example.com");
+
+        assertEquals(List.of(confirmedDto), result);
     }
 
 }

@@ -58,6 +58,22 @@ public class BookingService {
         bookingRepository.save(booking);
     }
 
+    public void withdrawSlot(Long gameId, String userEmail) {
+        Game game = getGame(gameId);
+        User user = getUser(userEmail);
+
+        Booking booking = bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.CONFIRMED)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "You don't have a booking for this game"));
+
+        GameSlot slot = booking.getSlot();
+        slot.setStatus(GameSlotStatus.AVAILABLE);
+        gameSlotRepository.save(slot);
+
+        booking.setStatus(BookingStatus.WITHDRAWN);
+        booking.setWithdrawnAt(LocalDateTime.now());
+        bookingRepository.save(booking);
+    }
+
     public String getJoinBlockReason(Long gameId, String userEmail) {
         Game game = getGame(gameId);
         User user = getUser(userEmail);
@@ -115,8 +131,21 @@ public class BookingService {
 
     public List<BookingResponeDTO> getMyBookings(String userEmail) {
         User user = getUser(userEmail);
-        return bookingRepository.findByUser(user).stream()
+        List<Booking> bookings = bookingRepository.findByUser(user);
+        return bookings.stream()
+                .filter(booking -> !isSupersededWithdrawal(booking, bookings))
                 .map(bookingMapper::toResponseDTO)
                 .toList();
+    }
+
+    private boolean isSupersededWithdrawal(Booking booking, List<Booking> allBookings) {
+        if (booking.getStatus() != BookingStatus.WITHDRAWN) {
+            return false;
+        }
+        Long gameId = booking.getSlot().getGame().getId();
+        return allBookings.stream()
+                .anyMatch(other -> other != booking
+                        && other.getSlot().getGame().getId().equals(gameId)
+                        && other.getCreatedAt().isAfter(booking.getCreatedAt()));
     }
 }
