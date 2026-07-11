@@ -69,12 +69,15 @@
                     </tbody>
                 </table>
 
-                <form method="post" th:action="@{/games/{id}/book(id=${game.id})}" class="mb-4">
+                <form th:if="${!alreadyBooked and !game.pastGame}" method="post" th:action="@{/games/{id}/book(id=${game.id})}" class="mb-4">
                     <span th:title="${joinBlockReason}">
                         <button type="submit" class="btn"
                                 th:classappend="${joinBlockReason != null} ? 'btn-secondary' : 'btn-primary'"
                                 th:disabled="${joinBlockReason != null}">Join Game</button>
                     </span>
+                </form>
+                <form th:if="${alreadyBooked and !game.pastGame}" method="post" th:action="@{/games/{id}/withdraw(id=${game.id})}" class="mb-4">
+                    <button type="submit" class="btn btn-outline-danger">Withdraw</button>
                 </form>
 
                 <h4 class="mt-4">Attendees</h4>

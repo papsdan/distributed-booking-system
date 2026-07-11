@@ -62,6 +62,10 @@ public class BookingService {
         Game game = getGame(gameId);
         User user = getUser(userEmail);
 
+        if (LocalDateTime.of(game.getGameDate(), game.getGameTime()).isBefore(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This game has already taken place");
+        }
+
         Booking booking = bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.CONFIRMED)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "You don't have a booking for this game"));
 
@@ -78,6 +82,12 @@ public class BookingService {
         Game game = getGame(gameId);
         User user = getUser(userEmail);
         return getJoinBlockReason(game, user);
+    }
+
+    public boolean hasConfirmedBooking(Long gameId, String userEmail) {
+        Game game = getGame(gameId);
+        User user = getUser(userEmail);
+        return bookingRepository.existsBySlot_GameAndUserAndStatus(game, user, BookingStatus.CONFIRMED);
     }
 
     private String getJoinBlockReason(Game game, User user) {

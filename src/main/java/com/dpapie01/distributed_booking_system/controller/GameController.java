@@ -91,14 +91,19 @@ public class GameController {
     @GetMapping("/{id}")
     public String showGameDetails(@PathVariable Long id,
                                    @RequestParam(name = "bookSuccess", defaultValue = "false") boolean bookSuccess,
+                                   @RequestParam(name = "withdrawSuccess", defaultValue = "false") boolean withdrawSuccess,
                                    Model model,
                                    @AuthenticationPrincipal UserDetails userDetails) {
         GameResponseDTO game = gameService.getGameDetails(id);
         model.addAttribute("game", game);
         model.addAttribute("attendees", gameService.getAttendees(id));
         model.addAttribute("joinBlockReason", bookingService.getJoinBlockReason(id, userDetails.getUsername()));
+        model.addAttribute("alreadyBooked", bookingService.hasConfirmedBooking(id, userDetails.getUsername()));
         if (bookSuccess) {
             model.addAttribute("successMessage", "You're booked in!");
+        }
+        if (withdrawSuccess) {
+            model.addAttribute("successMessage", "You've withdrawn from this game.");
         }
         return "game-details";
     }
@@ -109,6 +114,18 @@ public class GameController {
         try {
             bookingService.bookSlot(id, userDetails.getUsername());
             return "redirect:/games/" + id + "?bookSuccess=true";
+        } catch (ResponseStatusException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getReason());
+            return "redirect:/games/" + id;
+        }
+    }
+
+    @PostMapping("/{id}/withdraw")
+    public String withdrawGame(@PathVariable Long id, RedirectAttributes redirectAttributes,
+                               @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            bookingService.withdrawSlot(id, userDetails.getUsername());
+            return "redirect:/games/" + id + "?withdrawSuccess=true";
         } catch (ResponseStatusException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getReason());
             return "redirect:/games/" + id;
