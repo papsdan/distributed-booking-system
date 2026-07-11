@@ -18,11 +18,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
+
 @RequiredArgsConstructor
 @Service
 public class UserService {
 
-    private static final int SIGNUP_CREDIT_AMOUNT = 100;
+    private static final BigDecimal SIGNUP_CREDIT_AMOUNT = BigDecimal.valueOf(100);
 
     private final UserRepository userRepository;
     private final LocationRepository locationRepository;

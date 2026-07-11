@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -107,7 +108,7 @@ class UserServiceTest {
         verify(profileRepository).save(any());
         verify(locationRepository).findById(1L);
         verify(creditRepository).save(argThat(credit ->
-                credit.getUser() == savedUser && credit.getAmount() == 100));
+                credit.getUser() == savedUser && credit.getAmount().compareTo(BigDecimal.valueOf(100)) == 0));
     }
 
     @Test

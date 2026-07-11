@@ -15,6 +15,7 @@ import com.dpapie01.distributed_booking_system.enums.GameType;
 import com.dpapie01.distributed_booking_system.enums.PaymentType;
 import com.dpapie01.distributed_booking_system.mapper.BookingMapper;
 import com.dpapie01.distributed_booking_system.repository.BookingRepository;
+import com.dpapie01.distributed_booking_system.repository.CreditRepository;
 import com.dpapie01.distributed_booking_system.repository.GameRepository;
 import com.dpapie01.distributed_booking_system.repository.GameSlotRepository;
 import com.dpapie01.distributed_booking_system.repository.ProfileRepository;
@@ -55,6 +56,8 @@ class BookingServiceTest {
     private UserRepository userRepository;
     @Mock
     private ProfileRepository profileRepository;
+    @Mock
+    private CreditRepository creditRepository;
     @Mock
     private BookingMapper bookingMapper;
 
@@ -496,6 +499,39 @@ class BookingServiceTest {
         List<BookingResponeDTO> result = bookingService.getMyBookings("jane@example.com");
 
         assertEquals(List.of(confirmedDto), result);
+    }
+
+    @Test
+    void testBookSlot_InsufficientCredits() {
+        game.setPaymentType(PaymentType.PAID_ONLINE);
+        game.setPrice(BigDecimal.valueOf(20));
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+        when(creditRepository.sumAmountByUser(user)).thenReturn(BigDecimal.valueOf(10));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> bookingService.bookSlot(1L, "jane@example.com"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("You don't have enough credits for this game", ex.getReason());
+    }
+
+    @Test
+    void testBookSlot_PaidOnlineDeductsCredits() {
+        game.setPaymentType(PaymentType.PAID_ONLINE);
+        game.setPrice(BigDecimal.valueOf(20));
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+        when(creditRepository.sumAmountByUser(user)).thenReturn(BigDecimal.valueOf(100));
+        when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(10L);
+        when(gameSlotRepository.findFirstByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(Optional.of(slot));
+
+        bookingService.bookSlot(1L, "jane@example.com");
+
+        verify(creditRepository).save(argThat(credit ->
+                credit.getUser() == user && credit.getAmount().compareTo(BigDecimal.valueOf(-20)) == 0));
     }
 
 }

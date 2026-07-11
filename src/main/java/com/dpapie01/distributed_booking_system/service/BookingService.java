@@ -2,6 +2,7 @@ package com.dpapie01.distributed_booking_system.service;
 
 import com.dpapie01.distributed_booking_system.dto.BookingResponeDTO;
 import com.dpapie01.distributed_booking_system.entity.Booking;
+import com.dpapie01.distributed_booking_system.entity.Credit;
 import com.dpapie01.distributed_booking_system.entity.Game;
 import com.dpapie01.distributed_booking_system.entity.GameSlot;
 import com.dpapie01.distributed_booking_system.entity.Profile;
@@ -10,8 +11,10 @@ import com.dpapie01.distributed_booking_system.enums.BookingStatus;
 import com.dpapie01.distributed_booking_system.enums.GameGenderOption;
 import com.dpapie01.distributed_booking_system.enums.GameSlotStatus;
 import com.dpapie01.distributed_booking_system.enums.GameStatus;
+import com.dpapie01.distributed_booking_system.enums.PaymentType;
 import com.dpapie01.distributed_booking_system.mapper.BookingMapper;
 import com.dpapie01.distributed_booking_system.repository.BookingRepository;
+import com.dpapie01.distributed_booking_system.repository.CreditRepository;
 import com.dpapie01.distributed_booking_system.repository.GameRepository;
 import com.dpapie01.distributed_booking_system.repository.GameSlotRepository;
 import com.dpapie01.distributed_booking_system.repository.ProfileRepository;
@@ -21,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -33,6 +37,7 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
+    private final CreditRepository creditRepository;
     private final BookingMapper bookingMapper;
 
     public void bookSlot(Long gameId, String userEmail) {
@@ -56,6 +61,14 @@ public class BookingService {
         booking.setStatus(BookingStatus.CONFIRMED);
         booking.setConfirmedAt(LocalDateTime.now());
         bookingRepository.save(booking);
+
+        if (game.getPaymentType() == PaymentType.PAID_ONLINE) {
+            Credit payment = new Credit();
+            payment.setUser(user);
+            payment.setAmount(game.getPrice().negate());
+            payment.setReason("Booking payment for " + game.getTitle());
+            creditRepository.save(payment);
+        }
     }
 
     public void withdrawSlot(Long gameId, String userEmail) {
@@ -108,6 +121,11 @@ public class BookingService {
         }
         if (hasOverlappingBooking(game, user)) {
             return "You already have a booking that overlaps with this game's time";
+        }
+        BigDecimal userBalance = creditRepository.sumAmountByUser(user);
+        BigDecimal gamePrice = game.getPrice();
+        if (game.getPaymentType() == PaymentType.PAID_ONLINE && userBalance.compareTo(gamePrice) < 0) {
+            return "You don't have enough credits for this game";
         }
         if (gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE) == 0) {
             return "This game is full";
