@@ -18,6 +18,7 @@ import com.dpapie01.distributed_booking_system.enums.GameType;
 import com.dpapie01.distributed_booking_system.enums.PaymentType;
 import com.dpapie01.distributed_booking_system.mapper.GameMapper;
 import com.dpapie01.distributed_booking_system.repository.BookingRepository;
+import com.dpapie01.distributed_booking_system.repository.CreditRepository;
 import com.dpapie01.distributed_booking_system.repository.GameRepository;
 import com.dpapie01.distributed_booking_system.repository.GameSlotRepository;
 import com.dpapie01.distributed_booking_system.repository.PitchRepository;
@@ -41,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -59,6 +61,8 @@ class GameServiceTest {
     private GameMapper gameMapper;
     @Mock
     private BookingRepository bookingRepository;
+    @Mock
+    private CreditRepository creditRepository;
 
     @InjectMocks
     private GameService gameService;
@@ -426,6 +430,56 @@ class GameServiceTest {
 
         assertEquals(GameStatus.CANCELLED, game.getStatus());
         verify(gameRepository).save(game);
+    }
+
+    @Test
+    void testCancelGame_RefundsPaidBookings() {
+        game.setPaymentType(PaymentType.PAID_ONLINE);
+        game.setPrice(BigDecimal.valueOf(20));
+
+        User player = new User();
+        player.setId(2L);
+
+        GameSlot slot = new GameSlot();
+        slot.setGame(game);
+
+        Booking booking = new Booking();
+        booking.setSlot(slot);
+        booking.setUser(player);
+        booking.setStatus(BookingStatus.CONFIRMED);
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(bookingRepository.findBySlot_GameAndStatus(game, BookingStatus.CONFIRMED)).thenReturn(List.of(booking));
+
+        gameService.cancelGame(1L, "jon@example.com");
+
+        assertEquals(BookingStatus.CANCELLED, booking.getStatus());
+        verify(bookingRepository).save(booking);
+        verify(creditRepository).save(argThat(credit ->
+                credit.getUser() == player && credit.getAmount().compareTo(BigDecimal.valueOf(20)) == 0));
+    }
+
+    @Test
+    void testCancelGame_NoRefundForFreeGame() {
+        User player = new User();
+        player.setId(2L);
+
+        GameSlot slot = new GameSlot();
+        slot.setGame(game);
+
+        Booking booking = new Booking();
+        booking.setSlot(slot);
+        booking.setUser(player);
+        booking.setStatus(BookingStatus.CONFIRMED);
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(bookingRepository.findBySlot_GameAndStatus(game, BookingStatus.CONFIRMED)).thenReturn(List.of(booking));
+
+        gameService.cancelGame(1L, "jon@example.com");
+
+        assertEquals(BookingStatus.CANCELLED, booking.getStatus());
+        verify(bookingRepository).save(booking);
+        verify(creditRepository, never()).save(any());
     }
 
     @Test

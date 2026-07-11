@@ -4,6 +4,8 @@ import com.dpapie01.distributed_booking_system.dto.GameAttendeeDTO;
 import com.dpapie01.distributed_booking_system.dto.GameFilterDTO;
 import com.dpapie01.distributed_booking_system.dto.GameRequestDTO;
 import com.dpapie01.distributed_booking_system.dto.GameResponseDTO;
+import com.dpapie01.distributed_booking_system.entity.Booking;
+import com.dpapie01.distributed_booking_system.entity.Credit;
 import com.dpapie01.distributed_booking_system.entity.Game;
 import com.dpapie01.distributed_booking_system.entity.GameSlot;
 import com.dpapie01.distributed_booking_system.entity.Pitch;
@@ -20,7 +22,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -32,6 +33,7 @@ public class GameService {
     private final UserRepository userRepository;
     private final GameMapper gameMapper;
     private final BookingRepository bookingRepository;
+    private final CreditRepository creditRepository;
 
     public List<GameResponseDTO> filterGames(GameFilterDTO filter) {
         return gameRepository.filterGames(
@@ -172,6 +174,24 @@ public class GameService {
 
         game.setStatus(GameStatus.CANCELLED);
         gameRepository.save(game);
+
+        refundConfirmedBookings(game);
+    }
+
+    private void refundConfirmedBookings(Game game) {
+        List<Booking> confirmedBookings = bookingRepository.findBySlot_GameAndStatus(game, BookingStatus.CONFIRMED);
+        for (Booking booking : confirmedBookings) {
+            booking.setStatus(BookingStatus.CANCELLED);
+            bookingRepository.save(booking);
+
+            if (game.getPaymentType() == PaymentType.PAID_ONLINE) {
+                Credit refund = new Credit();
+                refund.setUser(booking.getUser());
+                refund.setAmount(game.getPrice());
+                refund.setReason("Refund for cancelled game: " + game.getTitle());
+                creditRepository.save(refund);
+            }
+        }
     }
 
     public List<GameAttendeeDTO> getAttendees(Long gameId) {
