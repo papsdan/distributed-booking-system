@@ -100,6 +100,7 @@ public class GameController {
         model.addAttribute("attendees", gameService.getAttendees(id));
         model.addAttribute("joinBlockReason", bookingService.getJoinBlockReason(id, userDetails.getUsername()));
         model.addAttribute("alreadyBooked", bookingService.hasConfirmedBooking(id, userDetails.getUsername()));
+        model.addAttribute("withdrawConfirmMessage", bookingService.getWithdrawalOutcomeMessage(id));
         if (bookSuccess) {
             model.addAttribute("successMessage", "You're booked in!");
         }

@@ -35,7 +35,8 @@
                     <td>
                         <a th:href="@{/games/{id}(id=${booking.gameId})}" class="btn btn-outline-primary btn-sm">View</a>
                         <form th:if="${booking.status.name() == 'CONFIRMED'}" method="post"
-                              th:action="@{/my-bookings/{id}/withdraw(id=${booking.gameId})}" class="d-inline">
+                              th:action="@{/my-bookings/{id}/withdraw(id=${booking.gameId})}"
+                              class="d-inline withdraw-form" th:attr="data-confirm-message=${booking.withdrawConfirmMessage}">
                             <button type="submit" class="btn btn-outline-danger btn-sm">Withdraw</button>
                         </form>
                     </td>
@@ -70,5 +71,15 @@
         </table>
 
     </div>
+
+    <script>
+        document.querySelectorAll('.withdraw-form').forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!confirm(form.getAttribute('data-confirm-message'))) {
+                    event.preventDefault();
+                }
+            });
+        });
+    </script>
 </body>
 </html>

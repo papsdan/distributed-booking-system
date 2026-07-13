@@ -80,7 +80,8 @@
                                 th:disabled="${joinBlockReason != null}">Join Game</button>
                     </span>
                 </form>
-                <form th:if="${alreadyBooked and !game.pastGame}" method="post" th:action="@{/games/{id}/withdraw(id=${game.id})}" class="mb-4">
+                <form th:if="${alreadyBooked and !game.pastGame}" method="post" th:action="@{/games/{id}/withdraw(id=${game.id})}"
+                      class="mb-4 withdraw-form" th:attr="data-confirm-message=${withdrawConfirmMessage}">
                     <button type="submit" class="btn btn-outline-danger">Withdraw</button>
                 </form>
 
@@ -106,5 +107,15 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.querySelectorAll('.withdraw-form').forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!confirm(form.getAttribute('data-confirm-message'))) {
+                    event.preventDefault();
+                }
+            });
+        });
+    </script>
 </body>
 </html>

@@ -109,6 +109,25 @@ public class BookingService {
         return LocalDateTime.now().isBefore(cutoff);
     }
 
+    public String getWithdrawalOutcomeMessage(Long gameId) {
+        return getWithdrawalOutcomeMessage(getGame(gameId));
+    }
+
+    private String getWithdrawalOutcomeMessage(Game game) {
+        String withdrawQuestion = "Are you sure you want to withdraw?";
+
+        if (game.getPaymentType() != PaymentType.PAID_ONLINE) {
+            return withdrawQuestion;
+        }
+        if (game.getRefundPolicy() == RefundPolicy.NO_REFUND) {
+            return withdrawQuestion + " There are no refunds for this game, so you will not be refunded.";
+        }
+        if (isWithinRefundWindow(game)) {
+            return withdrawQuestion + " You will be refunded " + game.getPrice() + " credits.";
+        }
+        return withdrawQuestion + " This game's refund window has passed, so you will not be refunded.";
+    }
+
     public String getJoinBlockReason(Long gameId, String userEmail) {
         Game game = getGame(gameId);
         User user = getUser(userEmail);
@@ -180,7 +199,13 @@ public class BookingService {
         List<Booking> bookings = bookingRepository.findByUser(user);
         return bookings.stream()
                 .filter(booking -> !isSupersededWithdrawal(booking, bookings))
-                .map(bookingMapper::toResponseDTO)
+                .map(booking -> {
+                    BookingResponeDTO dto = bookingMapper.toResponseDTO(booking);
+                    if (booking.getStatus() == BookingStatus.CONFIRMED) {
+                        dto.setWithdrawConfirmMessage(getWithdrawalOutcomeMessage(booking.getSlot().getGame()));
+                    }
+                    return dto;
+                })
                 .toList();
     }
 

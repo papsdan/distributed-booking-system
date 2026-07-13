@@ -654,4 +654,53 @@ class BookingServiceTest {
 
         verify(creditRepository, never()).save(any());
     }
+
+    @Test
+    void testGetWithdrawalOutcomeMessage_NotPaidOnline() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+
+        String message = bookingService.getWithdrawalOutcomeMessage(1L);
+
+        assertEquals("Are you sure you want to withdraw?", message);
+    }
+
+    @Test
+    void testGetWithdrawalOutcomeMessage_NoRefundPolicy() {
+        game.setPaymentType(PaymentType.PAID_ONLINE);
+        game.setPrice(BigDecimal.valueOf(20));
+        game.setRefundPolicy(RefundPolicy.NO_REFUND);
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+
+        String message = bookingService.getWithdrawalOutcomeMessage(1L);
+
+        assertEquals("Are you sure you want to withdraw? There are no refunds for this game, so you will not be refunded.", message);
+    }
+
+    @Test
+    void testGetWithdrawalOutcomeMessage_PaidOnlineWithinWindow() {
+        game.setPaymentType(PaymentType.PAID_ONLINE);
+        game.setPrice(BigDecimal.valueOf(20));
+        game.setRefundPolicy(RefundPolicy.HOURS_24);
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+
+        String message = bookingService.getWithdrawalOutcomeMessage(1L);
+
+        assertEquals("Are you sure you want to withdraw? You will be refunded 20 credits.", message);
+    }
+
+    @Test
+    void testGetWithdrawalOutcomeMessage_PaidOnlineOutsideWindow() {
+        LocalDateTime nowPlus2Hours = LocalDateTime.now().plusHours(2);
+        game.setGameDate(nowPlus2Hours.toLocalDate());
+        game.setGameTime(nowPlus2Hours.toLocalTime());
+        game.setPaymentType(PaymentType.PAID_ONLINE);
+        game.setPrice(BigDecimal.valueOf(20));
+        game.setRefundPolicy(RefundPolicy.HOURS_24);
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+
+        String message = bookingService.getWithdrawalOutcomeMessage(1L);
+
+        assertEquals("Are you sure you want to withdraw? This game's refund window has passed, so you will not be refunded.", message);
+    }
+
 }

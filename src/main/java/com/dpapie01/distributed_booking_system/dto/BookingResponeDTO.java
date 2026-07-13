@@ -30,4 +30,5 @@ public class BookingResponeDTO {
     private LocalDateTime withdrawnAt;
     private LocalDateTime expiresAt;
     private Boolean pastGame;
+    private String withdrawConfirmMessage;
 }
