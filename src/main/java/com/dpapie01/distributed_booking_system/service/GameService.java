@@ -91,7 +91,7 @@ public class GameService {
         game.setMaxPlayers(dto.getGameType().getMaxPlayers());
         game.setPrice(dto.getPrice());
         game.setPaymentType(dto.getPaymentType());
-        game.setRefundPolicy(RefundPolicy.NO_REFUND);
+        game.setRefundPolicy(dto.getRefundPolicy());
 
         Game savedGame = gameRepository.save(game);
         generateSlots(savedGame);
@@ -129,6 +129,7 @@ public class GameService {
         game.setMaxPlayers(dto.getGameType().getMaxPlayers());
         game.setPrice(dto.getPrice());
         game.setPaymentType(dto.getPaymentType());
+        game.setRefundPolicy(dto.getRefundPolicy());
 
         return gameMapper.toResponseDTO(gameRepository.save(game));
     }

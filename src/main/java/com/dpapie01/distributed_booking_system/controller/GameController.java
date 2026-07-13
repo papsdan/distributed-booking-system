@@ -6,6 +6,7 @@ import com.dpapie01.distributed_booking_system.dto.GameResponseDTO;
 import com.dpapie01.distributed_booking_system.enums.GameGenderOption;
 import com.dpapie01.distributed_booking_system.enums.GameType;
 import com.dpapie01.distributed_booking_system.enums.PaymentType;
+import com.dpapie01.distributed_booking_system.enums.RefundPolicy;
 import com.dpapie01.distributed_booking_system.entity.Location;
 import com.dpapie01.distributed_booking_system.repository.LocationRepository;
 import com.dpapie01.distributed_booking_system.repository.PitchRepository;
@@ -147,6 +148,7 @@ public class GameController {
         dto.setGenderOption(game.getGenderOption());
         dto.setPrice(game.getPrice());
         dto.setPaymentType(game.getPaymentType());
+        dto.setRefundPolicy(game.getRefundPolicy());
 
         model.addAttribute("gameRequestDto", dto);
         model.addAttribute("gameId", id);
@@ -192,5 +194,6 @@ public class GameController {
         model.addAttribute("gameTypes", GameType.values());
         model.addAttribute("genderOptions", GameGenderOption.values());
         model.addAttribute("paymentTypes", PaymentType.values());
+        model.addAttribute("refundPolicies", RefundPolicy.values());
     }
 }

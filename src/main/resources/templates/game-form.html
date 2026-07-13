@@ -112,6 +112,17 @@
                               class="text-danger small"></span>
                     </div>
 
+                    <div class="mb-3">
+                        <label for="refundPolicy" class="form-label">Refund Policy</label>
+                        <select id="refundPolicy" th:field="*{refundPolicy}" class="form-select">
+                            <option value="">-- Select Refund Policy --</option>
+                            <option th:each="policy : ${refundPolicies}" th:value="${policy}" th:text="${policy}"></option>
+                        </select>
+                        <span th:if="${#fields.hasErrors('refundPolicy')}"
+                              th:errors="*{refundPolicy}"
+                              class="text-danger small"></span>
+                    </div>
+
                     <button type="submit" class="btn btn-primary w-100">Save Game</button>
 
                 </form>

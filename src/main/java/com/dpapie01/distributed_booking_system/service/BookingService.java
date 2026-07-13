@@ -12,6 +12,7 @@ import com.dpapie01.distributed_booking_system.enums.GameGenderOption;
 import com.dpapie01.distributed_booking_system.enums.GameSlotStatus;
 import com.dpapie01.distributed_booking_system.enums.GameStatus;
 import com.dpapie01.distributed_booking_system.enums.PaymentType;
+import com.dpapie01.distributed_booking_system.enums.RefundPolicy;
 import com.dpapie01.distributed_booking_system.mapper.BookingMapper;
 import com.dpapie01.distributed_booking_system.repository.BookingRepository;
 import com.dpapie01.distributed_booking_system.repository.CreditRepository;
@@ -89,6 +90,23 @@ public class BookingService {
         booking.setStatus(BookingStatus.WITHDRAWN);
         booking.setWithdrawnAt(LocalDateTime.now());
         bookingRepository.save(booking);
+
+        if (game.getPaymentType() == PaymentType.PAID_ONLINE && isWithinRefundWindow(game)) {
+            Credit refund = new Credit();
+            refund.setUser(user);
+            refund.setAmount(game.getPrice());
+            refund.setReason("Refund for withdrawing from " + game.getTitle());
+            creditRepository.save(refund);
+        }
+    }
+
+    private boolean isWithinRefundWindow(Game game) {
+        if (game.getRefundPolicy() == RefundPolicy.NO_REFUND) {
+            return false;
+        }
+        int hours = game.getRefundPolicy() == RefundPolicy.HOURS_24 ? 24 : 48;
+        LocalDateTime cutoff = LocalDateTime.of(game.getGameDate(), game.getGameTime()).minusHours(hours);
+        return LocalDateTime.now().isBefore(cutoff);
     }
 
     public String getJoinBlockReason(Long gameId, String userEmail) {

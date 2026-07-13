@@ -13,6 +13,7 @@ import com.dpapie01.distributed_booking_system.enums.GameSlotStatus;
 import com.dpapie01.distributed_booking_system.enums.GameStatus;
 import com.dpapie01.distributed_booking_system.enums.GameType;
 import com.dpapie01.distributed_booking_system.enums.PaymentType;
+import com.dpapie01.distributed_booking_system.enums.RefundPolicy;
 import com.dpapie01.distributed_booking_system.mapper.BookingMapper;
 import com.dpapie01.distributed_booking_system.repository.BookingRepository;
 import com.dpapie01.distributed_booking_system.repository.CreditRepository;
@@ -39,7 +40,9 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -534,4 +537,121 @@ class BookingServiceTest {
                 credit.getUser() == user && credit.getAmount().compareTo(BigDecimal.valueOf(-20)) == 0));
     }
 
+    @Test
+    void testWithdrawSlot_RefundsWithinWindow_Hours24() {
+        game.setPaymentType(PaymentType.PAID_ONLINE);
+        game.setPrice(BigDecimal.valueOf(20));
+        game.setRefundPolicy(RefundPolicy.HOURS_24);
+
+        Booking booking = new Booking();
+        booking.setId(10L);
+        booking.setSlot(slot);
+        booking.setUser(user);
+        booking.setStatus(BookingStatus.CONFIRMED);
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.CONFIRMED))
+                .thenReturn(Optional.of(booking));
+
+        bookingService.withdrawSlot(1L, "jane@example.com");
+
+        verify(creditRepository).save(argThat(credit ->
+                credit.getUser() == user && credit.getAmount().compareTo(BigDecimal.valueOf(20)) == 0));
+    }
+
+    @Test
+    void testWithdrawSlot_RefundsWithinWindow_Hours48() {
+        game.setPaymentType(PaymentType.PAID_ONLINE);
+        game.setPrice(BigDecimal.valueOf(20));
+        game.setRefundPolicy(RefundPolicy.HOURS_48);
+
+        Booking booking = new Booking();
+        booking.setId(10L);
+        booking.setSlot(slot);
+        booking.setUser(user);
+        booking.setStatus(BookingStatus.CONFIRMED);
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.CONFIRMED))
+                .thenReturn(Optional.of(booking));
+
+        bookingService.withdrawSlot(1L, "jane@example.com");
+
+        verify(creditRepository).save(argThat(credit ->
+                credit.getUser() == user && credit.getAmount().compareTo(BigDecimal.valueOf(20)) == 0));
+    }
+
+    @Test
+    void testWithdrawSlot_NoRefundOutsideWindow_Hours24() {
+        LocalDateTime nowPlus2Hours = LocalDateTime.now().plusHours(2);
+        game.setGameDate(nowPlus2Hours.toLocalDate());
+        game.setGameTime(nowPlus2Hours.toLocalTime());
+        game.setPaymentType(PaymentType.PAID_ONLINE);
+        game.setPrice(BigDecimal.valueOf(20));
+        game.setRefundPolicy(RefundPolicy.HOURS_24);
+
+        Booking booking = new Booking();
+        booking.setId(10L);
+        booking.setSlot(slot);
+        booking.setUser(user);
+        booking.setStatus(BookingStatus.CONFIRMED);
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.CONFIRMED))
+                .thenReturn(Optional.of(booking));
+
+        bookingService.withdrawSlot(1L, "jane@example.com");
+
+        verify(creditRepository, never()).save(any());
+    }
+
+    @Test
+    void testWithdrawSlot_NoRefundOutsideWindow_Hours48() {
+        LocalDateTime nowPlus2Hours = LocalDateTime.now().plusHours(2);
+        game.setGameDate(nowPlus2Hours.toLocalDate());
+        game.setGameTime(nowPlus2Hours.toLocalTime());
+        game.setPaymentType(PaymentType.PAID_ONLINE);
+        game.setPrice(BigDecimal.valueOf(20));
+        game.setRefundPolicy(RefundPolicy.HOURS_48);
+
+        Booking booking = new Booking();
+        booking.setId(10L);
+        booking.setSlot(slot);
+        booking.setUser(user);
+        booking.setStatus(BookingStatus.CONFIRMED);
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.CONFIRMED))
+                .thenReturn(Optional.of(booking));
+
+        bookingService.withdrawSlot(1L, "jane@example.com");
+
+        verify(creditRepository, never()).save(any());
+    }
+
+    @Test
+    void testWithdrawSlot_NoRefundWhenPolicyIsNoRefund() {
+        game.setPaymentType(PaymentType.PAID_ONLINE);
+        game.setPrice(BigDecimal.valueOf(20));
+        game.setRefundPolicy(RefundPolicy.NO_REFUND);
+
+        Booking booking = new Booking();
+        booking.setId(10L);
+        booking.setSlot(slot);
+        booking.setUser(user);
+        booking.setStatus(BookingStatus.CONFIRMED);
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.CONFIRMED))
+                .thenReturn(Optional.of(booking));
+
+        bookingService.withdrawSlot(1L, "jane@example.com");
+
+        verify(creditRepository, never()).save(any());
+    }
 }

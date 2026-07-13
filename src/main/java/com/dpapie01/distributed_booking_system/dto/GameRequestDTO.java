@@ -3,6 +3,7 @@ package com.dpapie01.distributed_booking_system.dto;
 import com.dpapie01.distributed_booking_system.enums.GameGenderOption;
 import com.dpapie01.distributed_booking_system.enums.GameType;
 import com.dpapie01.distributed_booking_system.enums.PaymentType;
+import com.dpapie01.distributed_booking_system.enums.RefundPolicy;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Max;
@@ -61,4 +62,7 @@ public class GameRequestDTO {
 
     @NotNull
     private PaymentType paymentType;
+
+    @NotNull
+    private RefundPolicy refundPolicy;
 }
