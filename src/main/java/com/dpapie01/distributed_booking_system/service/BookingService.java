@@ -121,6 +121,19 @@ public class BookingService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "You don't have a held booking for this game"));
     }
 
+    @Transactional
+    public void expireOverdueHeldBookings() {
+        List<Booking> overdueHeldBookings = bookingRepository.findByStatusAndExpiresAtBefore(BookingStatus.HELD, LocalDateTime.now());
+        for (Booking booking : overdueHeldBookings) {
+            GameSlot slot = booking.getSlot();
+            slot.setStatus(GameSlotStatus.AVAILABLE);
+            gameSlotRepository.save(slot);
+
+            booking.setStatus(BookingStatus.EXPIRED);
+            bookingRepository.save(booking);
+        }
+    }
+
     public void withdrawSlot(Long gameId, String userEmail) {
         Game game = getGame(gameId);
         User user = getUser(userEmail);

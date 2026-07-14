@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -835,4 +836,34 @@ class BookingServiceTest {
         assertEquals("Are you sure you want to withdraw? This game's refund window has passed, so you will not be refunded.", message);
     }
 
+    @Test
+    void testExpireOverdueHeldBookings_NoneOverdue() {
+        when(bookingRepository.findByStatusAndExpiresAtBefore(eq(BookingStatus.HELD), any(LocalDateTime.class)))
+                .thenReturn(List.of());
+
+        bookingService.expireOverdueHeldBookings();
+
+        verify(gameSlotRepository, never()).save(any());
+        verify(bookingRepository, never()).save(any());
+    }
+
+    @Test
+    void testExpireOverdueHeldBookings_ReleasesSlotAndMarksExpired() {
+        slot.setStatus(GameSlotStatus.HELD);
+        Booking overdueBooking = new Booking();
+        overdueBooking.setSlot(slot);
+        overdueBooking.setUser(user);
+        overdueBooking.setStatus(BookingStatus.HELD);
+        overdueBooking.setExpiresAt(LocalDateTime.now().minusMinutes(1));
+
+        when(bookingRepository.findByStatusAndExpiresAtBefore(eq(BookingStatus.HELD), any(LocalDateTime.class)))
+                .thenReturn(List.of(overdueBooking));
+
+        bookingService.expireOverdueHeldBookings();
+
+        assertEquals(GameSlotStatus.AVAILABLE, slot.getStatus());
+        assertEquals(BookingStatus.EXPIRED, overdueBooking.getStatus());
+        verify(gameSlotRepository).save(slot);
+        verify(bookingRepository).save(overdueBooking);
+    }
 }
