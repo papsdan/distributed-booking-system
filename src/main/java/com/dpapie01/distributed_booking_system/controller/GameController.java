@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -114,7 +115,44 @@ public class GameController {
     public String bookGame(@PathVariable Long id, RedirectAttributes redirectAttributes,
                             @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            bookingService.bookSlot(id, userDetails.getUsername());
+            bookingService.holdSlot(id, userDetails.getUsername());
+            return "redirect:/games/" + id + "/checkout";
+        } catch (ResponseStatusException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getReason());
+            return "redirect:/games/" + id;
+        }
+    }
+
+    @GetMapping("/{id}/checkout")
+    public String showCheckout(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes,
+                                @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            model.addAttribute("game", gameService.getGameDetails(id));
+            model.addAttribute("holdExpiresAt", bookingService.getHoldExpiresAt(id, userDetails.getUsername()));
+            return "checkout";
+        } catch (ResponseStatusException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getReason());
+            return "redirect:/games/" + id;
+        }
+    }
+
+    @PostMapping("/{id}/checkout/cancel")
+    public String cancelCheckout(@PathVariable Long id, RedirectAttributes redirectAttributes,
+                                  @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            bookingService.cancelSlot(id, userDetails.getUsername());
+            return "redirect:/games/" + id;
+        } catch (ResponseStatusException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getReason());
+            return "redirect:/games/" + id;
+        }
+    }
+
+    @PostMapping("/{id}/checkout/confirm")
+    public String confirmCheckout(@PathVariable Long id, RedirectAttributes redirectAttributes,
+                                   @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            bookingService.confirmSlot(id, userDetails.getUsername());
             return "redirect:/games/" + id + "?bookSuccess=true";
         } catch (ResponseStatusException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getReason());

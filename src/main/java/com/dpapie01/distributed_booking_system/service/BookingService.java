@@ -23,6 +23,7 @@ import com.dpapie01.distributed_booking_system.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
@@ -41,7 +42,10 @@ public class BookingService {
     private final CreditRepository creditRepository;
     private final BookingMapper bookingMapper;
 
-    public void bookSlot(Long gameId, String userEmail) {
+    private static final int HOLD_MINUTES = 3;
+
+    @Transactional
+    public void holdSlot(Long gameId, String userEmail){
         Game game = getGame(gameId);
         User user = getUser(userEmail);
 
@@ -53,12 +57,33 @@ public class BookingService {
         GameSlot slot = gameSlotRepository.findFirstByGameAndStatus(game, GameSlotStatus.AVAILABLE)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "This game is full"));
 
-        slot.setStatus(GameSlotStatus.BOOKED);
+        slot.setStatus(GameSlotStatus.HELD);
         gameSlotRepository.save(slot);
 
         Booking booking = new Booking();
         booking.setSlot(slot);
         booking.setUser(user);
+        booking.setStatus(BookingStatus.HELD);
+        booking.setExpiresAt(LocalDateTime.now().plusMinutes(HOLD_MINUTES));
+        bookingRepository.save(booking);
+    }
+
+    @Transactional
+    public void confirmSlot(Long gameId, String userEmail){
+        Game game = getGame(gameId);
+        User user = getUser(userEmail);
+
+        Booking booking = bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.HELD)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "You don't have a held booking for this game"));
+
+        if(booking.getExpiresAt().isBefore(LocalDateTime.now())){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your booking slot hold has expired. Please try again joining again");
+        }
+
+        GameSlot slot = booking.getSlot();
+        slot.setStatus(GameSlotStatus.BOOKED);
+        gameSlotRepository.save(slot);
+
         booking.setStatus(BookingStatus.CONFIRMED);
         booking.setConfirmedAt(LocalDateTime.now());
         bookingRepository.save(booking);
@@ -70,6 +95,30 @@ public class BookingService {
             payment.setReason("Booking payment for " + game.getTitle());
             creditRepository.save(payment);
         }
+    }
+
+    @Transactional
+    public void cancelSlot(Long gameId, String userEmail) {
+        Game game = getGame(gameId);
+        User user = getUser(userEmail);
+
+        Booking booking = bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.HELD)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "You don't have a held booking for this game"));
+
+        GameSlot slot = booking.getSlot();
+        slot.setStatus(GameSlotStatus.AVAILABLE);
+        gameSlotRepository.save(slot);
+
+        booking.setStatus(BookingStatus.ABANDONED);
+        bookingRepository.save(booking);
+    }
+
+    public LocalDateTime getHoldExpiresAt(Long gameId, String userEmail) {
+        Game game = getGame(gameId);
+        User user = getUser(userEmail);
+        return bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.HELD)
+                .map(Booking::getExpiresAt)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "You don't have a held booking for this game"));
     }
 
     public void withdrawSlot(Long gameId, String userEmail) {
@@ -155,6 +204,9 @@ public class BookingService {
         }
         if (bookingRepository.existsBySlot_GameAndUserAndStatus(game, user, BookingStatus.CONFIRMED)) {
             return "You have already booked into this game";
+        }
+        if (bookingRepository.existsBySlot_GameAndUserAndStatus(game, user, BookingStatus.HELD)) {
+            return "You already have an active checkout in progress for this game";
         }
         if (hasOverlappingBooking(game, user)) {
             return "You already have a booking that overlaps with this game's time";

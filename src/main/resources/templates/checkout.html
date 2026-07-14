@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirm Booking</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-7">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0">Confirm Your Booking</h2>
+                    <form method="post" th:action="@{/games/{id}/checkout/cancel(id=${game.id})}">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm">Cancel Checkout</button>
+                    </form>
+                </div>
+
+                <div class="alert alert-info">
+                    Your slot is held until <strong th:text="${#temporals.format(holdExpiresAt, 'HH:mm:ss')}"></strong>. Confirm your booking before the hold expires, or it will be released back to other players.
+                </div>
+
+                <table class="table table-borderless">
+                    <tbody>
+                        <tr>
+                            <th>Game</th>
+                            <td th:text="${game.title}"></td>
+                        </tr>
+                        <tr>
+                            <th>Pitch</th>
+                            <td th:text="${game.pitchName + ' - ' + game.locationCity + ' - ' + game.locationArea}"></td>
+                        </tr>
+                        <tr>
+                            <th>Date</th>
+                            <td th:text="${game.gameDate}"></td>
+                        </tr>
+                        <tr>
+                            <th>Time</th>
+                            <td th:text="${game.gameTime}"></td>
+                        </tr>
+                        <tr th:if="${game.paymentType.name() == 'PAID_ONLINE'}">
+                            <th>Price</th>
+                            <td th:text="${game.price + ' credits'}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <form method="post" th:action="@{/games/{id}/checkout/confirm(id=${game.id})}">
+                    <button type="submit" class="btn btn-primary">Confirm Booking</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

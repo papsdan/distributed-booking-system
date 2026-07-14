@@ -103,56 +103,56 @@ class BookingServiceTest {
     }
 
     @Test
-    void testBookSlot_GameNotFound() {
+    void testHoldSlot_GameNotFound() {
         when(gameRepository.findById(1L)).thenReturn(Optional.empty());
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> bookingService.bookSlot(1L, "jane@example.com"));
+                () -> bookingService.holdSlot(1L, "jane@example.com"));
 
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
         assertEquals("Game not found", ex.getReason());
     }
 
     @Test
-    void testBookSlot_UserNotFound() {
+    void testHoldSlot_UserNotFound() {
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.empty());
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> bookingService.bookSlot(1L, "jane@example.com"));
+                () -> bookingService.holdSlot(1L, "jane@example.com"));
 
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
         assertEquals("User not found", ex.getReason());
     }
 
     @Test
-    void testBookSlot_GameCancelled() {
+    void testHoldSlot_GameCancelled() {
         game.setStatus(GameStatus.CANCELLED);
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> bookingService.bookSlot(1L, "jane@example.com"));
+                () -> bookingService.holdSlot(1L, "jane@example.com"));
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
         assertEquals("This game has been cancelled", ex.getReason());
     }
 
     @Test
-    void testBookSlot_GameAlreadyPlayed() {
+    void testHoldSlot_GameAlreadyPlayed() {
         game.setGameDate(LocalDate.of(2020, 1, 1));
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> bookingService.bookSlot(1L, "jane@example.com"));
+                () -> bookingService.holdSlot(1L, "jane@example.com"));
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
         assertEquals("This game has already taken place", ex.getReason());
     }
 
     @Test
-    void testBookSlot_GenderIneligible_WomanBlockedFromMensGame() {
+    void testHoldSlot_GenderIneligible_WomanBlockedFromMensGame() {
         game.setGenderOption(GameGenderOption.MENS);
         profile.setGender(Gender.WOMAN);
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
@@ -160,14 +160,14 @@ class BookingServiceTest {
         when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> bookingService.bookSlot(1L, "jane@example.com"));
+                () -> bookingService.holdSlot(1L, "jane@example.com"));
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
         assertEquals("This game is open to Men only", ex.getReason());
     }
 
     @Test
-    void testBookSlot_GenderIneligible_ManBlockedFromWomensGame() {
+    void testHoldSlot_GenderIneligible_ManBlockedFromWomensGame() {
         game.setGenderOption(GameGenderOption.WOMENS);
         profile.setGender(Gender.MAN);
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
@@ -175,14 +175,14 @@ class BookingServiceTest {
         when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> bookingService.bookSlot(1L, "jane@example.com"));
+                () -> bookingService.holdSlot(1L, "jane@example.com"));
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
         assertEquals("This game is open to Women only", ex.getReason());
     }
 
     @Test
-    void testBookSlot_GenderIneligible_PreferNotToSayBlockedFromMensGame() {
+    void testHoldSlot_GenderIneligible_PreferNotToSayBlockedFromMensGame() {
         game.setGenderOption(GameGenderOption.MENS);
         profile.setGender(Gender.PREFER_NOT_TO_SAY);
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
@@ -190,14 +190,14 @@ class BookingServiceTest {
         when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> bookingService.bookSlot(1L, "jane@example.com"));
+                () -> bookingService.holdSlot(1L, "jane@example.com"));
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
         assertEquals("This game is open to Men only", ex.getReason());
     }
 
     @Test
-    void testBookSlot_GenderIneligible_PreferNotToSayBlockedFromWomensGame() {
+    void testHoldSlot_GenderIneligible_PreferNotToSayBlockedFromWomensGame() {
         game.setGenderOption(GameGenderOption.WOMENS);
         profile.setGender(Gender.PREFER_NOT_TO_SAY);
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
@@ -205,14 +205,14 @@ class BookingServiceTest {
         when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> bookingService.bookSlot(1L, "jane@example.com"));
+                () -> bookingService.holdSlot(1L, "jane@example.com"));
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
         assertEquals("This game is open to Women only", ex.getReason());
     }
 
     @Test
-    void testBookSlot_PreferNotToSayEligibleForMixedGame() {
+    void testHoldSlot_PreferNotToSayEligibleForMixedGame() {
         game.setGenderOption(GameGenderOption.MIXED);
         profile.setGender(Gender.PREFER_NOT_TO_SAY);
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
@@ -221,13 +221,13 @@ class BookingServiceTest {
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(10L);
         when(gameSlotRepository.findFirstByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(Optional.of(slot));
 
-        bookingService.bookSlot(1L, "jane@example.com");
+        bookingService.holdSlot(1L, "jane@example.com");
 
-        assertEquals(GameSlotStatus.BOOKED, slot.getStatus());
+        assertEquals(GameSlotStatus.HELD, slot.getStatus());
     }
 
     @Test
-    void testBookSlot_NonBinaryEligibleForMensGame() {
+    void testHoldSlot_NonBinaryEligibleForMensGame() {
         game.setGenderOption(GameGenderOption.MENS);
         profile.setGender(Gender.NON_BINARY);
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
@@ -236,13 +236,13 @@ class BookingServiceTest {
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(10L);
         when(gameSlotRepository.findFirstByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(Optional.of(slot));
 
-        bookingService.bookSlot(1L, "jane@example.com");
+        bookingService.holdSlot(1L, "jane@example.com");
 
-        assertEquals(GameSlotStatus.BOOKED, slot.getStatus());
+        assertEquals(GameSlotStatus.HELD, slot.getStatus());
     }
 
     @Test
-    void testBookSlot_NonBinaryEligibleForWomensGame() {
+    void testHoldSlot_NonBinaryEligibleForWomensGame() {
         game.setGenderOption(GameGenderOption.WOMENS);
         profile.setGender(Gender.NON_BINARY);
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
@@ -251,58 +251,168 @@ class BookingServiceTest {
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(10L);
         when(gameSlotRepository.findFirstByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(Optional.of(slot));
 
-        bookingService.bookSlot(1L, "jane@example.com");
+        bookingService.holdSlot(1L, "jane@example.com");
 
-        assertEquals(GameSlotStatus.BOOKED, slot.getStatus());
+        assertEquals(GameSlotStatus.HELD, slot.getStatus());
     }
 
     @Test
-    void testBookSlot_GameFull() {
+    void testHoldSlot_GameFull() {
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
         when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(0L);
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> bookingService.bookSlot(1L, "jane@example.com"));
+                () -> bookingService.holdSlot(1L, "jane@example.com"));
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
         assertEquals("This game is full", ex.getReason());
     }
 
     @Test
-    void testBookSlot_AlreadyBooked() {
+    void testHoldSlot_AlreadyBooked() {
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
         when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
         when(bookingRepository.existsBySlot_GameAndUserAndStatus(game,user,BookingStatus.CONFIRMED)).thenReturn(true);
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> bookingService.bookSlot(1L, "jane@example.com"));
+                () -> bookingService.holdSlot(1L, "jane@example.com"));
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
         assertEquals("You have already booked into this game", ex.getReason());
     }
 
     @Test
-    void testBookSlot_Valid() {
+    void testHoldSlot_AlreadyHasActiveHold() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+        when(bookingRepository.existsBySlot_GameAndUserAndStatus(game, user, BookingStatus.CONFIRMED)).thenReturn(false);
+        when(bookingRepository.existsBySlot_GameAndUserAndStatus(game, user, BookingStatus.HELD)).thenReturn(true);
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> bookingService.holdSlot(1L, "jane@example.com"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("You already have an active checkout in progress for this game", ex.getReason());
+    }
+
+    @Test
+    void testHoldSlot_Valid() {
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
         when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(10L);
         when(gameSlotRepository.findFirstByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(Optional.of(slot));
 
-        bookingService.bookSlot(1L, "jane@example.com");
+        bookingService.holdSlot(1L, "jane@example.com");
 
-        assertEquals(GameSlotStatus.BOOKED, slot.getStatus());
+        assertEquals(GameSlotStatus.HELD, slot.getStatus());
         verify(gameSlotRepository).save(slot);
         verify(bookingRepository).save(argThat(booking ->
                 booking.getSlot() == slot
                         && booking.getUser() == user
-                        && booking.getStatus() == BookingStatus.CONFIRMED
-                        && booking.getConfirmedAt() != null));
+                        && booking.getStatus() == BookingStatus.HELD
+                        && booking.getExpiresAt() != null
+                        && booking.getExpiresAt().isAfter(LocalDateTime.now())));
     }
 
     @Test
-    void testBookSlot_OverlappingBookingBlocksJoin() {
+    void testConfirmSlot_Valid() {
+        slot.setStatus(GameSlotStatus.HELD);
+        Booking heldBooking = new Booking();
+        heldBooking.setId(10L);
+        heldBooking.setSlot(slot);
+        heldBooking.setUser(user);
+        heldBooking.setStatus(BookingStatus.HELD);
+        heldBooking.setExpiresAt(LocalDateTime.now().plusMinutes(2));
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.HELD))
+                .thenReturn(Optional.of(heldBooking));
+
+        bookingService.confirmSlot(1L, "jane@example.com");
+
+        assertEquals(GameSlotStatus.BOOKED, slot.getStatus());
+        assertEquals(BookingStatus.CONFIRMED, heldBooking.getStatus());
+        assertNotNull(heldBooking.getConfirmedAt());
+        verify(gameSlotRepository).save(slot);
+        verify(bookingRepository).save(heldBooking);
+    }
+
+    @Test
+    void testConfirmSlot_NoActiveHold() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.HELD))
+                .thenReturn(Optional.empty());
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> bookingService.confirmSlot(1L, "jane@example.com"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("You don't have a held booking for this game", ex.getReason());
+    }
+
+    @Test
+    void testConfirmSlot_HoldExpired() {
+        Booking heldBooking = new Booking();
+        heldBooking.setSlot(slot);
+        heldBooking.setUser(user);
+        heldBooking.setStatus(BookingStatus.HELD);
+        heldBooking.setExpiresAt(LocalDateTime.now().minusMinutes(1));
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.HELD))
+                .thenReturn(Optional.of(heldBooking));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> bookingService.confirmSlot(1L, "jane@example.com"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("Your booking slot hold has expired. Please try again joining again", ex.getReason());
+    }
+
+    @Test
+    void testCancelSlot_NoActiveHold() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.HELD))
+                .thenReturn(Optional.empty());
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> bookingService.cancelSlot(1L, "jane@example.com"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("You don't have a held booking for this game", ex.getReason());
+    }
+
+    @Test
+    void testCancelSlot_Valid() {
+        slot.setStatus(GameSlotStatus.HELD);
+        Booking heldBooking = new Booking();
+        heldBooking.setSlot(slot);
+        heldBooking.setUser(user);
+        heldBooking.setStatus(BookingStatus.HELD);
+        heldBooking.setExpiresAt(LocalDateTime.now().plusMinutes(2));
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.HELD))
+                .thenReturn(Optional.of(heldBooking));
+
+        bookingService.cancelSlot(1L, "jane@example.com");
+
+        assertEquals(GameSlotStatus.AVAILABLE, slot.getStatus());
+        assertEquals(BookingStatus.ABANDONED, heldBooking.getStatus());
+        verify(gameSlotRepository).save(slot);
+        verify(bookingRepository).save(heldBooking);
+    }
+
+    @Test
+    void testHoldSlot_OverlappingBookingBlocksJoin() {
         Game otherGame = new Game();
         otherGame.setId(2L);
         otherGame.setGameDate(LocalDate.of(2026, 7, 20));
@@ -324,14 +434,14 @@ class BookingServiceTest {
         when(bookingRepository.findByUserAndStatus(user, BookingStatus.CONFIRMED)).thenReturn(List.of(otherBooking));
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> bookingService.bookSlot(1L, "jane@example.com"));
+                () -> bookingService.holdSlot(1L, "jane@example.com"));
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
         assertEquals("You already have a booking that overlaps with this game's time", ex.getReason());
     }
 
     @Test
-    void testBookSlot_NonOverlappingBookingAllowsJoin() {
+    void testHoldSlot_NonOverlappingBookingAllowsJoin() {
         Game otherGame = new Game();
         otherGame.setId(2L);
         otherGame.setGameDate(LocalDate.of(2026, 7, 20));
@@ -354,9 +464,9 @@ class BookingServiceTest {
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(10L);
         when(gameSlotRepository.findFirstByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(Optional.of(slot));
 
-        bookingService.bookSlot(1L, "jane@example.com");
+        bookingService.holdSlot(1L, "jane@example.com");
 
-        assertEquals(GameSlotStatus.BOOKED, slot.getStatus());
+        assertEquals(GameSlotStatus.HELD, slot.getStatus());
     }
 
     @Test
@@ -505,7 +615,7 @@ class BookingServiceTest {
     }
 
     @Test
-    void testBookSlot_InsufficientCredits() {
+    void testHoldSlot_InsufficientCredits() {
         game.setPaymentType(PaymentType.PAID_ONLINE);
         game.setPrice(BigDecimal.valueOf(20));
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
@@ -514,14 +624,14 @@ class BookingServiceTest {
         when(creditRepository.sumAmountByUser(user)).thenReturn(BigDecimal.valueOf(10));
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> bookingService.bookSlot(1L, "jane@example.com"));
+                () -> bookingService.holdSlot(1L, "jane@example.com"));
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
         assertEquals("You don't have enough credits for this game", ex.getReason());
     }
 
     @Test
-    void testBookSlot_PaidOnlineDeductsCredits() {
+    void testHoldSlot_PaidOnline_NoCreditsDeductedYet() {
         game.setPaymentType(PaymentType.PAID_ONLINE);
         game.setPrice(BigDecimal.valueOf(20));
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
@@ -531,7 +641,29 @@ class BookingServiceTest {
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(10L);
         when(gameSlotRepository.findFirstByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(Optional.of(slot));
 
-        bookingService.bookSlot(1L, "jane@example.com");
+        bookingService.holdSlot(1L, "jane@example.com");
+
+        assertEquals(GameSlotStatus.HELD, slot.getStatus());
+        verify(creditRepository, never()).save(any());
+    }
+
+    @Test
+    void testConfirmSlot_PaidOnlineDeductsCredits() {
+        game.setPaymentType(PaymentType.PAID_ONLINE);
+        game.setPrice(BigDecimal.valueOf(20));
+
+        Booking heldBooking = new Booking();
+        heldBooking.setSlot(slot);
+        heldBooking.setUser(user);
+        heldBooking.setStatus(BookingStatus.HELD);
+        heldBooking.setExpiresAt(LocalDateTime.now().plusMinutes(2));
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.HELD))
+                .thenReturn(Optional.of(heldBooking));
+
+        bookingService.confirmSlot(1L, "jane@example.com");
 
         verify(creditRepository).save(argThat(credit ->
                 credit.getUser() == user && credit.getAmount().compareTo(BigDecimal.valueOf(-20)) == 0));
