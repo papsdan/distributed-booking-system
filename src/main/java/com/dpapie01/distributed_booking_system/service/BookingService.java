@@ -80,6 +80,13 @@ public class BookingService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your booking slot hold has expired. Please try again joining again");
         }
 
+        if (game.getPaymentType() == PaymentType.PAID_ONLINE) {
+            BigDecimal userBalance = creditRepository.sumAmountByUser(user);
+            if (userBalance.compareTo(game.getPrice()) < 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You don't have enough credits for this game");
+            }
+        }
+
         GameSlot slot = booking.getSlot();
         slot.setStatus(GameSlotStatus.BOOKED);
         gameSlotRepository.save(slot);
@@ -223,11 +230,6 @@ public class BookingService {
         }
         if (hasOverlappingBooking(game, user)) {
             return "You already have a booking that overlaps with this game's time";
-        }
-        BigDecimal userBalance = creditRepository.sumAmountByUser(user);
-        BigDecimal gamePrice = game.getPrice();
-        if (game.getPaymentType() == PaymentType.PAID_ONLINE && userBalance.compareTo(gamePrice) < 0) {
-            return "You don't have enough credits for this game";
         }
         if (gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE) == 0) {
             return "This game is full";

@@ -616,19 +616,31 @@ class BookingServiceTest {
     }
 
     @Test
-    void testHoldSlot_InsufficientCredits() {
+    void testConfirmSlot_InsufficientCredits() {
         game.setPaymentType(PaymentType.PAID_ONLINE);
         game.setPrice(BigDecimal.valueOf(20));
+        slot.setStatus(GameSlotStatus.HELD);
+
+        Booking heldBooking = new Booking();
+        heldBooking.setSlot(slot);
+        heldBooking.setUser(user);
+        heldBooking.setStatus(BookingStatus.HELD);
+        heldBooking.setExpiresAt(LocalDateTime.now().plusMinutes(2));
+
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
-        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+        when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.HELD))
+                .thenReturn(Optional.of(heldBooking));
         when(creditRepository.sumAmountByUser(user)).thenReturn(BigDecimal.valueOf(10));
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> bookingService.holdSlot(1L, "jane@example.com"));
+                () -> bookingService.confirmSlot(1L, "jane@example.com"));
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
         assertEquals("You don't have enough credits for this game", ex.getReason());
+        assertEquals(GameSlotStatus.HELD, slot.getStatus());
+        verify(gameSlotRepository, never()).save(any());
+        verify(bookingRepository, never()).save(any());
     }
 
     @Test
@@ -638,7 +650,6 @@ class BookingServiceTest {
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
         when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
-        when(creditRepository.sumAmountByUser(user)).thenReturn(BigDecimal.valueOf(100));
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(10L);
         when(gameSlotRepository.findFirstByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(Optional.of(slot));
 
@@ -663,6 +674,7 @@ class BookingServiceTest {
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
         when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.HELD))
                 .thenReturn(Optional.of(heldBooking));
+        when(creditRepository.sumAmountByUser(user)).thenReturn(BigDecimal.valueOf(100));
 
         bookingService.confirmSlot(1L, "jane@example.com");
 

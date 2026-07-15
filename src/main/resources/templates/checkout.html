@@ -25,6 +25,9 @@
                     Your hold has expired and the slot has been released. <a th:href="@{/games/{id}(id=${game.id})}">Return to the game</a> to try joining again.
                 </div>
 
+                <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+                <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
                 <table class="table table-borderless">
                     <tbody>
                         <tr>
@@ -49,6 +52,14 @@
                         </tr>
                     </tbody>
                 </table>
+
+                <form method="post" th:if="${game.paymentType.name() == 'PAID_ONLINE'}"
+                      th:action="@{/games/{id}/checkout/topup(id=${game.id})}" th:object="${creditRequestDto}"
+                      class="d-flex gap-2 align-items-center mb-4">
+                    <input type="number" step="0.01" min="1" class="form-control" style="max-width: 150px;"
+                           th:field="*{creditAmount}" placeholder="Amount">
+                    <button type="submit" class="btn btn-outline-primary">Add Credits</button>
+                </form>
 
                 <form method="post" th:action="@{/games/{id}/checkout/confirm(id=${game.id})}" id="confirm-form">
                     <button type="submit" class="btn btn-primary" id="confirm-button">Confirm Booking</button>

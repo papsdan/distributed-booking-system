@@ -1,5 +1,6 @@
 package com.dpapie01.distributed_booking_system.controller;
 
+import com.dpapie01.distributed_booking_system.dto.CreditRequestDTO;
 import com.dpapie01.distributed_booking_system.dto.GameFilterDTO;
 import com.dpapie01.distributed_booking_system.dto.GameRequestDTO;
 import com.dpapie01.distributed_booking_system.dto.GameResponseDTO;
@@ -11,6 +12,7 @@ import com.dpapie01.distributed_booking_system.entity.Location;
 import com.dpapie01.distributed_booking_system.repository.LocationRepository;
 import com.dpapie01.distributed_booking_system.repository.PitchRepository;
 import com.dpapie01.distributed_booking_system.service.BookingService;
+import com.dpapie01.distributed_booking_system.service.CreditService;
 import com.dpapie01.distributed_booking_system.service.GameService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Controller
 @RequestMapping("/games")
@@ -33,6 +36,7 @@ public class GameController {
 
     private final GameService gameService;
     private final BookingService bookingService;
+    private final CreditService creditService;
     private final PitchRepository pitchRepository;
     private final LocationRepository locationRepository;
 
@@ -129,6 +133,7 @@ public class GameController {
         try {
             model.addAttribute("game", gameService.getGameDetails(id));
             model.addAttribute("holdExpiresAt", bookingService.getHoldExpiresAt(id, userDetails.getUsername()));
+            model.addAttribute("creditRequestDto", new CreditRequestDTO());
             return "checkout";
         } catch (ResponseStatusException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getReason());
@@ -156,7 +161,7 @@ public class GameController {
             return "redirect:/games/" + id + "?bookSuccess=true";
         } catch (ResponseStatusException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getReason());
-            return "redirect:/games/" + id;
+            return "redirect:/games/" + id + "/checkout";
         }
     }
 
@@ -225,6 +230,21 @@ public class GameController {
         } catch (ResponseStatusException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getReason());
             return "redirect:/games";
+        }
+    }
+
+    @PostMapping("/{id}/checkout/topup")
+    public String topUpCredits(@PathVariable Long id,
+                               @Valid @ModelAttribute("creditRequestDto") CreditRequestDTO dto,
+                               RedirectAttributes redirectAttributes,
+                               @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            creditService.topUpCredits(dto, userDetails.getUsername());
+            redirectAttributes.addFlashAttribute("successMessage", "You have successfully added " + dto.getCreditAmount() + " credits.");
+            return "redirect:/games/" + id + "/checkout";
+        } catch (ResponseStatusException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getReason());
+            return "redirect:/games/" + id + "/checkout";
         }
     }
 
