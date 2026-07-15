@@ -35,10 +35,11 @@ public class GameMapper {
         return dto;
     }
 
-    public GameResponseDTO toResponseDTO(Game game, int attendingCount, int remainingSlots) {
+    public GameResponseDTO toResponseDTO(Game game, int attendingCount, int remainingSlots, int heldSlots) {
         GameResponseDTO dto = toResponseDTO(game);
         dto.setAttendingCount(attendingCount);
         dto.setRemainingSlots(remainingSlots);
+        dto.setHeldSlots(heldSlots);
         return dto;
     }
 }

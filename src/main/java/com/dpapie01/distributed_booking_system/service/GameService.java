@@ -46,7 +46,8 @@ public class GameService {
                         filter.isOpenSlotsOnly()).stream()
                 .map(game -> gameMapper.toResponseDTO(game,
                         countSlots(game, GameSlotStatus.BOOKED),
-                        countSlots(game, GameSlotStatus.AVAILABLE)))
+                        countSlots(game, GameSlotStatus.AVAILABLE),
+                        countSlots(game, GameSlotStatus.HELD)))
                 .toList();
     }
 
@@ -56,7 +57,8 @@ public class GameService {
 
         return gameMapper.toResponseDTO(game,
                 countSlots(game, GameSlotStatus.BOOKED),
-                countSlots(game, GameSlotStatus.AVAILABLE));
+                countSlots(game, GameSlotStatus.AVAILABLE),
+                countSlots(game, GameSlotStatus.HELD));
     }
 
     public GameResponseDTO getGameForEdit(Long gameId, String organiserEmail) {

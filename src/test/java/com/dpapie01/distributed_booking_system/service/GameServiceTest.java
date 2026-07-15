@@ -233,7 +233,8 @@ class GameServiceTest {
                 .thenReturn(List.of(game));
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.BOOKED)).thenReturn(4L);
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(16L);
-        when(gameMapper.toResponseDTO(game, 4, 16)).thenReturn(gameResponse);
+        when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.HELD)).thenReturn(0L);
+        when(gameMapper.toResponseDTO(game, 4, 16, 0)).thenReturn(gameResponse);
 
         List<GameResponseDTO> result = gameService.filterGames(filter);
 
@@ -249,7 +250,8 @@ class GameServiceTest {
         when(gameRepository.filterGames(null, null, null, null, null, null, true)).thenReturn(List.of(game));
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.BOOKED)).thenReturn(4L);
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(16L);
-        when(gameMapper.toResponseDTO(game, 4, 16)).thenReturn(gameResponse);
+        when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.HELD)).thenReturn(0L);
+        when(gameMapper.toResponseDTO(game, 4, 16, 0)).thenReturn(gameResponse);
 
         List<GameResponseDTO> result = gameService.filterGames(filter);
 
@@ -262,7 +264,8 @@ class GameServiceTest {
         when(gameRepository.filterGames(null, null, null, null, null, null, false)).thenReturn(List.of(game));
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.BOOKED)).thenReturn(0L);
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(20L);
-        when(gameMapper.toResponseDTO(game, 0, 20)).thenReturn(gameResponse);
+        when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.HELD)).thenReturn(0L);
+        when(gameMapper.toResponseDTO(game, 0, 20, 0)).thenReturn(gameResponse);
 
         List<GameResponseDTO> result = gameService.filterGames(new GameFilterDTO());
 
@@ -275,7 +278,8 @@ class GameServiceTest {
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.BOOKED)).thenReturn(4L);
         when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.AVAILABLE)).thenReturn(16L);
-        when(gameMapper.toResponseDTO(game, 4, 16)).thenReturn(gameResponse);
+        when(gameSlotRepository.countByGameAndStatus(game, GameSlotStatus.HELD)).thenReturn(0L);
+        when(gameMapper.toResponseDTO(game, 4, 16, 0)).thenReturn(gameResponse);
 
         GameResponseDTO result = gameService.getGameDetails(1L);
 

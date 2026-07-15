@@ -68,10 +68,17 @@
                         </tr>
                         <tr>
                             <th>Availability</th>
-                            <td th:text="${game.attendingCount + ' attending, ' + game.remainingSlots + (game.remainingSlots == 1 ? ' spot remaining' : ' spots remaining')}"></td>
+                            <td th:text="${game.attendingCount + ' attending, ' + (game.heldSlots > 0 ? (game.heldSlots + (game.heldSlots == 1 ? ' spot pending checkout, ' : ' spots pending checkout, ')) : '') + game.remainingSlots + (game.remainingSlots == 1 ? ' spot remaining' : ' spots remaining')}"></td>
                         </tr>
                     </tbody>
                 </table>
+
+                <div th:if="${game.remainingSlots == 0 and game.heldSlots > 0}" class="alert alert-warning">
+                    This game shows as full right now, but
+                    <span th:text="${game.heldSlots}"></span>
+                    <span th:text="${game.heldSlots == 1 ? ' spot is' : ' spots are'}"></span>
+                    currently being checked out by other players and may become available again if they don't complete their booking.
+                </div>
 
                 <form th:if="${!alreadyBooked and !game.pastGame}" method="post" th:action="@{/games/{id}/book(id=${game.id})}" class="mb-4">
                     <span th:title="${joinBlockReason}">
