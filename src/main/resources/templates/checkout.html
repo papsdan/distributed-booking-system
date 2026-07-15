@@ -12,13 +12,17 @@
             <div class="col-md-7">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="mb-0">Confirm Your Booking</h2>
-                    <form method="post" th:action="@{/games/{id}/checkout/cancel(id=${game.id})}">
+                    <form method="post" th:action="@{/games/{id}/checkout/cancel(id=${game.id})}" id="cancel-form">
                         <button type="submit" class="btn btn-outline-secondary btn-sm">Cancel Checkout</button>
                     </form>
                 </div>
 
-                <div class="alert alert-info">
-                    Your slot is held until <strong th:text="${#temporals.format(holdExpiresAt, 'HH:mm:ss')}"></strong>. Confirm your booking before the hold expires, or it will be released back to other players.
+                <div class="alert alert-info" id="hold-timer-alert">
+                    Your slot is held for the next <strong id="hold-timer" th:attr="data-expires-at=${#temporals.format(holdExpiresAt, 'yyyy-MM-dd''T''HH:mm:ss')}"></strong>. Confirm your booking before the hold expires, or it will be released back to other players.
+                </div>
+
+                <div class="alert alert-danger d-none" id="hold-expired-alert">
+                    Your hold has expired and the slot has been released. <a th:href="@{/games/{id}(id=${game.id})}">Return to the game</a> to try joining again.
                 </div>
 
                 <table class="table table-borderless">
@@ -46,12 +50,39 @@
                     </tbody>
                 </table>
 
-                <form method="post" th:action="@{/games/{id}/checkout/confirm(id=${game.id})}">
-                    <button type="submit" class="btn btn-primary">Confirm Booking</button>
+                <form method="post" th:action="@{/games/{id}/checkout/confirm(id=${game.id})}" id="confirm-form">
+                    <button type="submit" class="btn btn-primary" id="confirm-button">Confirm Booking</button>
                 </form>
             </div>
         </div>
     </div>
 
+    <script>
+        const holdTimer = document.getElementById('hold-timer');
+        const expiresAt = new Date(holdTimer.getAttribute('data-expires-at')).getTime();
+
+        function showExpired() {
+            clearInterval(intervalId);
+            document.getElementById('hold-timer-alert').classList.add('d-none');
+            document.getElementById('hold-expired-alert').classList.remove('d-none');
+            document.getElementById('confirm-button').disabled = true;
+            document.getElementById('cancel-form').classList.add('d-none');
+        }
+
+        function tick() {
+            const remainingMs = expiresAt - Date.now();
+            if (remainingMs <= 0) {
+                showExpired();
+                return;
+            }
+            const totalSeconds = Math.floor(remainingMs / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            holdTimer.textContent = minutes + ':' + String(seconds).padStart(2, '0');
+        }
+
+        const intervalId = setInterval(tick, 1000);
+        tick();
+    </script>
 </body>
 </html>
