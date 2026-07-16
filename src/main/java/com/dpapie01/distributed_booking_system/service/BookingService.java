@@ -21,6 +21,7 @@ import com.dpapie01.distributed_booking_system.repository.GameSlotRepository;
 import com.dpapie01.distributed_booking_system.repository.ProfileRepository;
 import com.dpapie01.distributed_booking_system.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,7 +59,11 @@ public class BookingService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "This game is full"));
 
         slot.setStatus(GameSlotStatus.HELD);
-        gameSlotRepository.save(slot);
+        try {
+            gameSlotRepository.saveAndFlush(slot);
+        } catch (OptimisticLockingFailureException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This slot was just taken by another player, please try again");
+        }
 
         Booking booking = new Booking();
         booking.setSlot(slot);

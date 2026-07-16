@@ -309,7 +309,7 @@ class BookingServiceTest {
         bookingService.holdSlot(1L, "jane@example.com");
 
         assertEquals(GameSlotStatus.HELD, slot.getStatus());
-        verify(gameSlotRepository).save(slot);
+        verify(gameSlotRepository).saveAndFlush(slot);
         verify(bookingRepository).save(argThat(booking ->
                 booking.getSlot() == slot
                         && booking.getUser() == user
