@@ -23,11 +23,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http.cors(withDefaults())
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
+                .csrf(withDefaults())
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/register/**", "/login/**").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginPage("/login")
                         .usernameParameter("email")
+                        .defaultSuccessUrl("/games", true)
                         .failureUrl("/login?loginError=true"))
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logoutSuccess=true")
