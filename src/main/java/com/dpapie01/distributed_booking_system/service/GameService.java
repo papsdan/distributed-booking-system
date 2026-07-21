@@ -61,11 +61,11 @@ public class GameService {
                 countSlots(game, GameSlotStatus.HELD));
     }
 
-    public GameResponseDTO getGameForEdit(Long gameId, String organiserEmail) {
+    public GameResponseDTO getGameForEdit(Long gameId, String currentUserEmail) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not found"));
 
-        assertOrganiser(game, organiserEmail);
+        assertOrganiserOrAdmin(game, currentUserEmail);
 
         return gameMapper.toResponseDTO(game);
     }
@@ -112,11 +112,11 @@ public class GameService {
         gameSlotRepository.saveAll(slots);
     }
 
-    public GameResponseDTO updateGame(GameRequestDTO dto, Long gameId, String organiserEmail) {
+    public GameResponseDTO updateGame(GameRequestDTO dto, Long gameId, String currentUserEmail) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not found"));
 
-        assertOrganiser(game, organiserEmail);
+        assertOrganiserOrAdmin(game, currentUserEmail);
 
         Pitch pitch = validatePitchAndCapacity(dto);
 
@@ -156,17 +156,27 @@ public class GameService {
         return pitch;
     }
 
-    private void assertOrganiser(Game game, String organiserEmail) {
-        if (!game.getOrganiser().getEmail().equals(organiserEmail)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the organiser can edit this game");
+    private boolean isOrganiser(Game game, String currentUserEmail) {
+        return game.getOrganiser().getEmail().equals(currentUserEmail);
+    }
+
+    private boolean isAdmin(String currentUserEmail) {
+        return userRepository.findByEmail(currentUserEmail)
+                .map(user -> user.getRole() == Role.ADMIN)
+                .orElse(false);
+    }
+
+    private void assertOrganiserOrAdmin(Game game, String currentUserEmail) {
+        if (!isOrganiser(game, currentUserEmail) && !isAdmin(currentUserEmail)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the organiser or an admin can edit this game");
         }
     }
 
-    public void cancelGame(Long gameId, String organiserEmail) {
+    public void cancelGame(Long gameId, String currentUserEmail) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not found"));
 
-        assertOrganiser(game, organiserEmail);
+        assertOrganiserOrAdmin(game, currentUserEmail);
 
         if (game.getStatus() == GameStatus.CANCELLED) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Game is already cancelled");

@@ -16,6 +16,7 @@ import com.dpapie01.distributed_booking_system.enums.GameSlotStatus;
 import com.dpapie01.distributed_booking_system.enums.GameStatus;
 import com.dpapie01.distributed_booking_system.enums.GameType;
 import com.dpapie01.distributed_booking_system.enums.PaymentType;
+import com.dpapie01.distributed_booking_system.enums.Role;
 import com.dpapie01.distributed_booking_system.mapper.GameMapper;
 import com.dpapie01.distributed_booking_system.repository.BookingRepository;
 import com.dpapie01.distributed_booking_system.repository.CreditRepository;
@@ -70,6 +71,7 @@ class GameServiceTest {
     private Location location;
     private Pitch pitch;
     private User organiser;
+    private User admin;
     private Game game;
     private GameResponseDTO gameResponse;
     private GameRequestDTO gameRequest;
@@ -94,12 +96,19 @@ class GameServiceTest {
         organiser.setLastName("Smith");
         organiser.setEmail("jon@example.com");
 
+        admin = new User();
+        admin.setId(2L);
+        admin.setFirstName("Ada");
+        admin.setLastName("Admin");
+        admin.setEmail("admin@example.com");
+        admin.setRole(Role.ADMIN);
+
         game = new Game();
         game.setId(1L);
         game.setOrganiser(organiser);
         game.setPitch(pitch);
         game.setTitle("Sunday Game");
-        game.setGameDate(LocalDate.of(2026, 7, 20));
+        game.setGameDate(LocalDate.now().plusDays(7));
         game.setGameTime(LocalTime.of(18, 0));
         game.setDurationMinutes(60);
         game.setGameType(GameType.TEN_A_SIDE);
@@ -117,7 +126,7 @@ class GameServiceTest {
         gameRequest = new GameRequestDTO();
         gameRequest.setTitle("Sunday Game");
         gameRequest.setPitchId(1L);
-        gameRequest.setGameDate(LocalDate.of(2026, 7, 20));
+        gameRequest.setGameDate(LocalDate.now().plusDays(7));
         gameRequest.setGameTime(LocalTime.of(18, 0));
         gameRequest.setDurationMinutes(60);
         gameRequest.setGameType(GameType.TEN_A_SIDE);
@@ -317,7 +326,7 @@ class GameServiceTest {
                 () -> gameService.updateGame(gameRequest, 1L, "notorganiser@example.com"));
 
         assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
-        assertEquals("Only the organiser can edit this game", ex.getReason());
+        assertEquals("Only the organiser or an admin can edit this game", ex.getReason());
     }
 
     @Test
@@ -347,6 +356,20 @@ class GameServiceTest {
     }
 
     @Test
+    void testUpdateGame_AdminNotOrganiser() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(admin));
+        when(pitchRepository.findById(1L)).thenReturn(Optional.of(pitch));
+        when(gameRepository.save(game)).thenReturn(game);
+        when(gameMapper.toResponseDTO(game)).thenReturn(gameResponse);
+
+        GameResponseDTO result = gameService.updateGame(gameRequest, 1L, "admin@example.com");
+
+        assertEquals(1L, result.getId());
+        verify(gameRepository).save(game);
+    }
+
+    @Test
     void testGetGameForEdit_NotFound() {
         when(gameRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -365,7 +388,7 @@ class GameServiceTest {
                 () -> gameService.getGameForEdit(1L, "someoneelse@example.com"));
 
         assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
-        assertEquals("Only the organiser can edit this game", ex.getReason());
+        assertEquals("Only the organiser or an admin can edit this game", ex.getReason());
     }
 
     @Test
@@ -378,6 +401,17 @@ class GameServiceTest {
         assertEquals(1L, result.getId());
         assertEquals("Sunday Game", result.getTitle());
 
+    }
+
+    @Test
+    void testGetGameForEdit_AdminNotOrganiser() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(admin));
+        when(gameMapper.toResponseDTO(game)).thenReturn(gameResponse);
+
+        GameResponseDTO result = gameService.getGameForEdit(1L, "admin@example.com");
+
+        assertEquals(1L, result.getId());
     }
 
     @Test
@@ -399,7 +433,7 @@ class GameServiceTest {
                 () -> gameService.cancelGame(1L, "someoneelse@example.com"));
 
         assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
-        assertEquals("Only the organiser can edit this game", ex.getReason());
+        assertEquals("Only the organiser or an admin can edit this game", ex.getReason());
     }
 
     @Test
@@ -431,6 +465,17 @@ class GameServiceTest {
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
 
         gameService.cancelGame(1L, "jon@example.com");
+
+        assertEquals(GameStatus.CANCELLED, game.getStatus());
+        verify(gameRepository).save(game);
+    }
+
+    @Test
+    void testCancelGame_AdminNotOrganiser() {
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(admin));
+
+        gameService.cancelGame(1L, "admin@example.com");
 
         assertEquals(GameStatus.CANCELLED, game.getStatus());
         verify(gameRepository).save(game);

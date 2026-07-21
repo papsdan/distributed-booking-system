@@ -8,7 +8,7 @@
                 <a class="nav-link" th:href="@{/games}">Games</a>
                 <a class="nav-link" th:href="@{/my-bookings}">My Bookings</a>
                 <a class="nav-link" th:href="@{/profile}">Profile</a>
-                <a class="nav-link" sec:authorize="hasRole('ADMIN')" th:href="@{/admin/pitches}">Admin: Pitches</a>
+                <a class="nav-link" sec:authorize="hasRole('ROLE_ADMIN')" th:href="@{/admin/pitches}">Admin: Pitches</a>
             </div>
             <form method="post" th:action="@{/logout}" class="d-flex">
                 <button type="submit" class="btn btn-outline-light btn-sm">Log Out</button>
