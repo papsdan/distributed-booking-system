@@ -13,12 +13,14 @@ import com.dpapie01.distributed_booking_system.repository.LocationRepository;
 import com.dpapie01.distributed_booking_system.repository.ProfileRepository;
 import com.dpapie01.distributed_booking_system.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -67,5 +69,11 @@ public class UserService {
         creditRepository.save(signupCredit);
 
         return userMapper.toResponseDTO(savedUser);
+    }
+
+    public List<UserResponseDTO> getAllUsers() {
+        return userRepository.findAll(Sort.by("id")).stream()
+                .map(user -> userMapper.toResponseDTO(user))
+                .toList();
     }
 }
