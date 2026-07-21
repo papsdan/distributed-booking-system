@@ -1,6 +1,7 @@
 package com.dpapie01.distributed_booking_system.service;
 
 import com.dpapie01.distributed_booking_system.dto.RegisterRequestDTO;
+import com.dpapie01.distributed_booking_system.dto.UserFilterDTO;
 import com.dpapie01.distributed_booking_system.dto.UserResponseDTO;
 import com.dpapie01.distributed_booking_system.entity.Location;
 import com.dpapie01.distributed_booking_system.entity.User;
@@ -22,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -49,8 +51,10 @@ class UserServiceTest {
 
     private RegisterRequestDTO registerRequest;
     private User savedUser;
+    private User adminUser;
     private Location location;
     private UserResponseDTO userResponse;
+    private UserResponseDTO adminUserResponse;
 
     @BeforeEach
     void setUp() {
@@ -77,6 +81,15 @@ class UserServiceTest {
         savedUser.setRole(Role.PLAYER);
         savedUser.setActive(true);
 
+        adminUser = new User();
+        adminUser.setId(2L);
+        adminUser.setFirstName("Admin");
+        adminUser.setLastName("User");
+        adminUser.setUsername("adminuser");
+        adminUser.setEmail("admin@example.com");
+        adminUser.setRole(Role.ADMIN);
+        adminUser.setActive(true);
+
         userResponse = new UserResponseDTO();
         userResponse.setId(1L);
         userResponse.setFirstName("Jon");
@@ -84,6 +97,14 @@ class UserServiceTest {
         userResponse.setUsername("jonsmith");
         userResponse.setEmail("jon@example.com");
         userResponse.setRole(Role.PLAYER);
+
+        adminUserResponse = new UserResponseDTO();
+        adminUserResponse.setId(2L);
+        adminUserResponse.setFirstName("Admin");
+        adminUserResponse.setLastName("User");
+        adminUserResponse.setUsername("adminuser");
+        adminUserResponse.setEmail("admin@example.com");
+        adminUserResponse.setRole(Role.ADMIN);
     }
     
 
@@ -164,4 +185,64 @@ class UserServiceTest {
         verify(passwordEncoder).encode("password123");
         verify(userRepository).save(argThat(u -> "encoded".equals(u.getPassword())));
     }
+
+    @Test
+    void testGetAllUsers_NoFilters() {
+        UserFilterDTO filter = new UserFilterDTO();
+
+        when(userRepository.searchUsers(null, false, null)).thenReturn(List.of(savedUser, adminUser));
+        when(userMapper.toResponseDTO(savedUser)).thenReturn(userResponse);
+        when(userMapper.toResponseDTO(adminUser)).thenReturn(adminUserResponse);
+
+        List<UserResponseDTO> result = userService.getAllUsers(filter);
+
+        assertEquals(2, result.size());
+        assertEquals("jonsmith", result.get(0).getUsername());
+        assertEquals("adminuser", result.get(1).getUsername());
+    }
+
+    @Test
+    void testGetAllUsers_WithSearchQuery() {
+        UserFilterDTO filter = new UserFilterDTO();
+        filter.setSearchQuery("jon");
+
+        when(userRepository.searchUsers("jon", false, null)).thenReturn(List.of(savedUser));
+        when(userMapper.toResponseDTO(savedUser)).thenReturn(userResponse);
+
+        List<UserResponseDTO> result = userService.getAllUsers(filter);
+
+        assertEquals(1, result.size());
+        verify(userRepository).searchUsers("jon", false, null);
+    }
+
+    @Test
+    void testGetAllUsers_ActiveOnly() {
+        UserFilterDTO filter = new UserFilterDTO();
+        filter.setActiveOnly(true);
+
+        when(userRepository.searchUsers(null, true, null)).thenReturn(List.of(savedUser));
+        when(userMapper.toResponseDTO(savedUser)).thenReturn(userResponse);
+
+        List<UserResponseDTO> result = userService.getAllUsers(filter);
+
+        assertEquals(1, result.size());
+        assertEquals("jonsmith", result.getFirst().getUsername());
+        verify(userRepository).searchUsers(null, true, null);
+    }
+
+    @Test
+    void testGetAllUsers_FilteredByRole() {
+        UserFilterDTO filter = new UserFilterDTO();
+        filter.setRoles(List.of(Role.ADMIN));
+
+        when(userRepository.searchUsers(null, false, List.of(Role.ADMIN))).thenReturn(List.of(adminUser));
+        when(userMapper.toResponseDTO(adminUser)).thenReturn(adminUserResponse);
+
+        List<UserResponseDTO> result = userService.getAllUsers(filter);
+
+        assertEquals(1, result.size());
+        assertEquals("adminuser", result.getFirst().getUsername());
+        verify(userRepository).searchUsers(null, false, List.of(Role.ADMIN));
+    }
+
 }

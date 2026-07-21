@@ -12,6 +12,28 @@
     <div class="container mt-5">
         <h2 class="mb-4">Users</h2>
 
+        <form method="get" th:action="@{/admin/users}" th:object="${userFilterDto}" class="row g-2 mb-4">
+            <div class="col-md-3">
+                <input type="text" th:field="*{searchQuery}" class="form-control" placeholder="Search name, username or email" />
+            </div>
+            <div class="col-md-3 d-flex align-items-center gap-3">
+                <div th:each="r : ${allRoles}" class="form-check form-check-inline">
+                    <input type="checkbox" th:field="*{roles}" th:value="${r}" class="form-check-input" />
+                    <label th:text="${r}" class="form-check-label"></label>
+                </div>
+            </div>
+            <div class="col-md-2 form-check d-flex align-items-center">
+                <input type="checkbox" th:field="*{activeOnly}" class="form-check-input" id="activeOnly" />
+                <label for="activeOnly" class="form-check-label ms-2">Active only</label>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-secondary w-100">Search</button>
+            </div>
+            <div class="col-md-1">
+                <a th:href="@{/admin/users}" class="btn btn-outline-secondary w-100">Reset</a>
+            </div>
+        </form>
+
         <table class="table table-bordered align-middle">
             <thead>
                 <tr>

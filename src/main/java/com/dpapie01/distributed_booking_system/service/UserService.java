@@ -1,6 +1,7 @@
 package com.dpapie01.distributed_booking_system.service;
 
 import com.dpapie01.distributed_booking_system.dto.RegisterRequestDTO;
+import com.dpapie01.distributed_booking_system.dto.UserFilterDTO;
 import com.dpapie01.distributed_booking_system.dto.UserResponseDTO;
 import com.dpapie01.distributed_booking_system.entity.Credit;
 import com.dpapie01.distributed_booking_system.entity.Location;
@@ -13,7 +14,6 @@ import com.dpapie01.distributed_booking_system.repository.LocationRepository;
 import com.dpapie01.distributed_booking_system.repository.ProfileRepository;
 import com.dpapie01.distributed_booking_system.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -71,9 +71,13 @@ public class UserService {
         return userMapper.toResponseDTO(savedUser);
     }
 
-    public List<UserResponseDTO> getAllUsers() {
-        return userRepository.findAll(Sort.by("id")).stream()
-                .map(user -> userMapper.toResponseDTO(user))
+    public List<UserResponseDTO> getAllUsers(UserFilterDTO filter) {
+        return userRepository.searchUsers(
+                        filter.getSearchQuery() == null || filter.getSearchQuery().isBlank() ? null : filter.getSearchQuery(),
+                        filter.isActiveOnly(),
+                        filter.getRoles() == null || filter.getRoles().isEmpty() ? null : filter.getRoles())
+                .stream()
+                .map(userMapper::toResponseDTO)
                 .toList();
     }
 }
