@@ -4,6 +4,7 @@ import com.dpapie01.distributed_booking_system.dto.CreditRequestDTO;
 import com.dpapie01.distributed_booking_system.dto.GameFilterDTO;
 import com.dpapie01.distributed_booking_system.dto.GameRequestDTO;
 import com.dpapie01.distributed_booking_system.dto.GameResponseDTO;
+import com.dpapie01.distributed_booking_system.dto.ProfileResponseDTO;
 import com.dpapie01.distributed_booking_system.enums.GameGenderOption;
 import com.dpapie01.distributed_booking_system.enums.GameType;
 import com.dpapie01.distributed_booking_system.enums.PaymentType;
@@ -14,6 +15,7 @@ import com.dpapie01.distributed_booking_system.repository.PitchRepository;
 import com.dpapie01.distributed_booking_system.service.BookingService;
 import com.dpapie01.distributed_booking_system.service.CreditService;
 import com.dpapie01.distributed_booking_system.service.GameService;
+import com.dpapie01.distributed_booking_system.service.ProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -39,6 +41,7 @@ public class GameController {
     private final CreditService creditService;
     private final PitchRepository pitchRepository;
     private final LocationRepository locationRepository;
+    private final ProfileService profileService;
 
     @GetMapping
     public String listGames(@ModelAttribute("gameFilterDto") GameFilterDTO filter,
@@ -49,6 +52,9 @@ public class GameController {
                              @AuthenticationPrincipal UserDetails userDetails) {
         model.addAttribute("games", gameService.filterGames(filter));
         model.addAttribute("currentUserEmail", userDetails.getUsername());
+        ProfileResponseDTO profile = profileService.getProfile(userDetails.getUsername());
+        model.addAttribute("preferredLocationCity", profile.getPreferredLocationCity());
+        model.addAttribute("preferredLocationArea", profile.getPreferredLocationArea());
         List<Location> locations = locationRepository.findAll();
         model.addAttribute("cities", locations.stream()
                 .map(Location::getCity).distinct().sorted().toList());

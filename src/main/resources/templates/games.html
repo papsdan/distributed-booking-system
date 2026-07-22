@@ -79,7 +79,11 @@
             <tbody>
                 <tr th:each="game : ${games}" th:id="'game-' + ${game.id}">
                     <td th:text="${game.title}"></td>
-                    <td th:text="${game.pitchName + ' - ' + game.locationCity + ' - ' + game.locationArea}"></td>
+                    <td>
+                        <span th:text="${game.pitchName + ' - ' + game.locationCity + ' - ' + game.locationArea}"></span>
+                        <span th:if="${game.locationCity == preferredLocationCity and game.locationArea == preferredLocationArea}"
+                              class="badge bg-info text-dark">Matches your preferred area</span>
+                    </td>
                     <td th:text="${game.gameDate}"></td>
                     <td th:text="${game.gameTime}"></td>
                     <td th:text="${game.gameType.label}"></td>
