@@ -77,7 +77,7 @@ class BookingServiceTest {
     void setUp() {
         game = new Game();
         game.setId(1L);
-        game.setGameDate(LocalDate.of(2026, 7, 20));
+        game.setGameDate(LocalDate.now().plusDays(7));
         game.setGameTime(LocalTime.of(18, 0));
         game.setDurationMinutes(60);
         game.setGameType(GameType.TEN_A_SIDE);
@@ -416,7 +416,7 @@ class BookingServiceTest {
     void testHoldSlot_OverlappingBookingBlocksJoin() {
         Game otherGame = new Game();
         otherGame.setId(2L);
-        otherGame.setGameDate(LocalDate.of(2026, 7, 20));
+        otherGame.setGameDate(LocalDate.now().plusDays(7));
         otherGame.setGameTime(LocalTime.of(18, 30));
         otherGame.setDurationMinutes(60);
         otherGame.setStatus(GameStatus.OPEN);
