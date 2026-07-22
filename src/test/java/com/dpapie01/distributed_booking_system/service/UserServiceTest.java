@@ -2,6 +2,7 @@ package com.dpapie01.distributed_booking_system.service;
 
 import com.dpapie01.distributed_booking_system.dto.RegisterRequestDTO;
 import com.dpapie01.distributed_booking_system.dto.UserFilterDTO;
+import com.dpapie01.distributed_booking_system.dto.UserRequestDTO;
 import com.dpapie01.distributed_booking_system.dto.UserResponseDTO;
 import com.dpapie01.distributed_booking_system.entity.Location;
 import com.dpapie01.distributed_booking_system.entity.User;
@@ -23,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -245,4 +247,51 @@ class UserServiceTest {
         verify(userRepository).searchUsers(null, false, List.of(Role.ADMIN));
     }
 
+    @Test
+    void testUpdateUser_Valid() {
+        UserRequestDTO dto = new UserRequestDTO();
+        dto.setRole(Role.ADMIN);
+        dto.setActive(true);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(savedUser));
+        when(userRepository.save(savedUser)).thenReturn(savedUser);
+        when(userMapper.toResponseDTO(savedUser)).thenReturn(userResponse);
+
+        userService.updateUser(dto, 1L, "admin@example.com");
+
+        assertEquals(Role.ADMIN, savedUser.getRole());
+        assertTrue(savedUser.getActive());
+        verify(userRepository).save(savedUser);
+    }
+
+    @Test
+    void testUpdateUser_UserNotFound() {
+        UserRequestDTO dto = new UserRequestDTO();
+        dto.setRole(Role.ADMIN);
+        dto.setActive(true);
+
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> userService.updateUser(dto, 99L, "admin@example.com"));
+
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+        assertEquals("User not found", ex.getReason());
+    }
+
+    @Test
+    void testUpdateUser_CannotUpdateSelf() {
+        UserRequestDTO dto = new UserRequestDTO();
+        dto.setRole(Role.PLAYER);
+        dto.setActive(true);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(savedUser));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> userService.updateUser(dto, 1L, "jon@example.com"));
+
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+        assertEquals("You cannot change your own role or active status", ex.getReason());
+        verify(userRepository, never()).save(any());
+    }
 }

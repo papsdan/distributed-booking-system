@@ -2,6 +2,7 @@ package com.dpapie01.distributed_booking_system.service;
 
 import com.dpapie01.distributed_booking_system.dto.RegisterRequestDTO;
 import com.dpapie01.distributed_booking_system.dto.UserFilterDTO;
+import com.dpapie01.distributed_booking_system.dto.UserRequestDTO;
 import com.dpapie01.distributed_booking_system.dto.UserResponseDTO;
 import com.dpapie01.distributed_booking_system.entity.Credit;
 import com.dpapie01.distributed_booking_system.entity.Location;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -79,5 +81,20 @@ public class UserService {
                 .stream()
                 .map(userMapper::toResponseDTO)
                 .toList();
+    }
+
+    public UserResponseDTO updateUser(UserRequestDTO dto, Long userId, String currentUserEmail) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (user.getEmail().equals(currentUserEmail)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot change your own role or active status");
+        }
+
+        user.setActive(dto.getActive());
+        user.setRole(dto.getRole());
+        user.setDeactivatedAt(dto.getActive() ? null : LocalDateTime.now());
+
+        return userMapper.toResponseDTO(userRepository.save(user));
     }
 }
