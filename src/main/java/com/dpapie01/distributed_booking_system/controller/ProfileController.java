@@ -2,6 +2,7 @@ package com.dpapie01.distributed_booking_system.controller;
 
 import com.dpapie01.distributed_booking_system.dto.ProfileResponseDTO;
 import com.dpapie01.distributed_booking_system.dto.UpdateProfileRequestDTO;
+import com.dpapie01.distributed_booking_system.entity.Location;
 import com.dpapie01.distributed_booking_system.enums.Gender;
 import com.dpapie01.distributed_booking_system.repository.LocationRepository;
 import com.dpapie01.distributed_booking_system.service.ProfileService;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 
 @Controller
 @RequestMapping("/profile")
@@ -34,7 +36,7 @@ public class ProfileController {
         dto.setLocationId(profile.getPreferredLocationId());
 
         model.addAttribute("updateProfileRequestDto", dto);
-        model.addAttribute("locations", locationRepository.findAll());
+        addLocationAttributes(model);
         model.addAttribute("genders", Gender.values());
         if (updateSuccess) {
             model.addAttribute("successMessage", "Profile updated successfully.");
@@ -45,7 +47,7 @@ public class ProfileController {
     @PostMapping
     public String updateProfile(@AuthenticationPrincipal UserDetails userDetails, @Valid @ModelAttribute("updateProfileRequestDto") UpdateProfileRequestDTO dto, BindingResult result, Model model) {
         if (result.hasErrors()) {
-            model.addAttribute("locations", locationRepository.findAll());
+            addLocationAttributes(model);
             model.addAttribute("genders", Gender.values());
             return "profile";
         }
@@ -54,10 +56,16 @@ public class ProfileController {
             return "redirect:/profile?updateSuccess=true";
         } catch (ResponseStatusException e) {
             model.addAttribute("errorMessage", e.getReason());
-            model.addAttribute("locations", locationRepository.findAll());
+            addLocationAttributes(model);
             model.addAttribute("genders", Gender.values());
             return "profile";
         }
+    }
+
+    private void addLocationAttributes(Model model) {
+        List<Location> locations = locationRepository.findAll();
+        model.addAttribute("locations", locations);
+        model.addAttribute("cities", locations.stream().map(Location::getCity).distinct().sorted().toList());
     }
 }
 

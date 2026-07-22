@@ -2,6 +2,7 @@ package com.dpapie01.distributed_booking_system.controller;
 
 import com.dpapie01.distributed_booking_system.dto.PitchRequestDTO;
 import com.dpapie01.distributed_booking_system.dto.PitchResponseDTO;
+import com.dpapie01.distributed_booking_system.entity.Location;
 import com.dpapie01.distributed_booking_system.repository.LocationRepository;
 import com.dpapie01.distributed_booking_system.service.PitchService;
 import jakarta.validation.Valid;
@@ -11,6 +12,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/admin/pitches")
@@ -37,7 +40,7 @@ public class PitchController {
     @GetMapping("/new")
     public String showCreateForm(Model model) {
         model.addAttribute("pitchRequestDto", new PitchRequestDTO());
-        model.addAttribute("locations", locationRepository.findAll());
+        addLocationAttributes(model);
         return "pitch-form";
     }
 
@@ -45,7 +48,7 @@ public class PitchController {
     public String createPitch(@Valid @ModelAttribute("pitchRequestDto") PitchRequestDTO dto,
                                BindingResult result, Model model) {
         if (result.hasErrors()) {
-            model.addAttribute("locations", locationRepository.findAll());
+            addLocationAttributes(model);
             return "pitch-form";
         }
         try {
@@ -53,7 +56,7 @@ public class PitchController {
             return "redirect:/admin/pitches?createSuccess=true";
         } catch (ResponseStatusException e) {
             model.addAttribute("errorMessage", e.getReason());
-            model.addAttribute("locations", locationRepository.findAll());
+            addLocationAttributes(model);
             return "pitch-form";
         }
     }
@@ -69,7 +72,7 @@ public class PitchController {
         dto.setActive(pitch.getActive());
 
         model.addAttribute("pitchRequestDto", dto);
-        model.addAttribute("locations", locationRepository.findAll());
+        addLocationAttributes(model);
         model.addAttribute("pitchId", id);
         return "pitch-form";
     }
@@ -80,7 +83,7 @@ public class PitchController {
                                BindingResult result,
                                Model model) {
         if (result.hasErrors()) {
-            model.addAttribute("locations", locationRepository.findAll());
+            addLocationAttributes(model);
             model.addAttribute("pitchId", id);
             return "pitch-form";
         }
@@ -89,7 +92,7 @@ public class PitchController {
             return "redirect:/admin/pitches?updateSuccess=true";
         } catch (ResponseStatusException e) {
             model.addAttribute("errorMessage", e.getReason());
-            model.addAttribute("locations", locationRepository.findAll());
+            addLocationAttributes(model);
             model.addAttribute("pitchId", id);
             return "pitch-form";
         }
@@ -99,5 +102,11 @@ public class PitchController {
     public String updatePitchStatus(@PathVariable Long id, @RequestParam boolean activeStatus) {
         pitchService.setActiveStatus(id, activeStatus);
         return "redirect:/admin/pitches#pitch-" + id;
+    }
+
+    private void addLocationAttributes(Model model) {
+        List<Location> locations = locationRepository.findAll();
+        model.addAttribute("locations", locations);
+        model.addAttribute("cities", locations.stream().map(Location::getCity).distinct().sorted().toList());
     }
 }

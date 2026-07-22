@@ -13,9 +13,9 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UpdateProfileRequestDTO {
 
-    @NotNull
+    @NotNull(message = "Please select your gender")
     private Gender gender;
 
-    @NotNull
+    @NotNull(message = "Please select your preferred location")
     private Long locationId;
 }

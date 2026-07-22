@@ -36,9 +36,9 @@ public class RegisterRequestDTO {
     @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
 
-    @NotNull
+    @NotNull(message = "Please select your gender")
     private Gender gender;
 
-    @NotNull
+    @NotNull(message = "Please select your preferred location")
     private Long locationId;
 }

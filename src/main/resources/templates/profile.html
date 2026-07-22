@@ -33,13 +33,23 @@
                         <div id="genderHint" class="form-text"></div>
                     </div>
 
+                    <label class="form-label fw-bold mb-1">Preferred Location</label>
                     <div class="mb-3">
-                        <label for="locationId" class="form-label">Preferred Location</label>
-                        <select th:field="*{locationId}" class="form-select">
-                            <option value="">-- Select Location --</option>
+                        <label for="city" class="form-label">City</label>
+                        <select id="city" class="form-select">
+                            <option value="">-- Select City --</option>
+                            <option th:each="c : ${cities}" th:value="${c}" th:text="${c}"></option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="locationId" class="form-label">Area</label>
+                        <select id="locationId" th:field="*{locationId}" class="form-select">
+                            <option value="">-- Select Area --</option>
                             <option th:each="loc : ${locations}"
                                     th:value="${loc.id}"
-                                    th:text="${loc.city + ' - ' + loc.area}"></option>
+                                    th:text="${loc.area}"
+                                    th:attr="data-city=${loc.city}"></option>
                         </select>
                         <span th:if="${#fields.hasErrors('locationId')}"
                               th:errors="*{locationId}"
@@ -66,6 +76,31 @@
 
         genderSelect.addEventListener('change', syncGenderHint);
         syncGenderHint();
+
+        const citySelect = document.getElementById('city');
+        const areaSelect = document.getElementById('locationId');
+        const allAreaOptions = Array.from(areaSelect.options).filter(o => o.value !== '');
+
+        function syncAreaOptions() {
+            const selectedCity = citySelect.value;
+            const previouslySelectedValue = areaSelect.value;
+            areaSelect.innerHTML = '';
+            areaSelect.appendChild(new Option('-- Select Area --', ''));
+            allAreaOptions
+                .filter(o => !selectedCity || o.dataset.city === selectedCity)
+                .forEach(o => areaSelect.appendChild(o.cloneNode(true)));
+            if (Array.from(areaSelect.options).some(o => o.value === previouslySelectedValue)) {
+                areaSelect.value = previouslySelectedValue;
+            }
+        }
+
+        const initiallySelectedArea = allAreaOptions.find(o => o.selected);
+        if (initiallySelectedArea) {
+            citySelect.value = initiallySelectedArea.dataset.city;
+        }
+
+        citySelect.addEventListener('change', syncAreaOptions);
+        syncAreaOptions();
     </script>
 </body>
 </html>

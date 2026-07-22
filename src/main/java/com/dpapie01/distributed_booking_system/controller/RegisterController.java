@@ -1,6 +1,7 @@
 package com.dpapie01.distributed_booking_system.controller;
 
 import com.dpapie01.distributed_booking_system.dto.RegisterRequestDTO;
+import com.dpapie01.distributed_booking_system.entity.Location;
 import com.dpapie01.distributed_booking_system.enums.Gender;
 import com.dpapie01.distributed_booking_system.repository.LocationRepository;
 import com.dpapie01.distributed_booking_system.service.UserService;
@@ -11,6 +12,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/register")
@@ -23,7 +26,7 @@ public class RegisterController {
     @GetMapping
     public String showRegisterForm(Model model) {
         model.addAttribute("registerRequestDto", new RegisterRequestDTO());
-        model.addAttribute("locations", locationRepository.findAll());
+        addLocationAttributes(model);
         model.addAttribute("genders", Gender.values());
         return "register";
     }
@@ -31,7 +34,7 @@ public class RegisterController {
     @PostMapping
     public String register(@Valid @ModelAttribute("registerRequestDto") RegisterRequestDTO dto, BindingResult result, Model model) {
         if (result.hasErrors()) {
-            model.addAttribute("locations", locationRepository.findAll());
+            addLocationAttributes(model);
             model.addAttribute("genders", Gender.values());
             return "register";
         }
@@ -40,9 +43,15 @@ public class RegisterController {
             return "redirect:/login";
         } catch (ResponseStatusException e) {
             model.addAttribute("errorMessage", e.getReason());
-            model.addAttribute("locations", locationRepository.findAll());
+            addLocationAttributes(model);
             model.addAttribute("genders", Gender.values());
             return "register";
         }
+    }
+
+    private void addLocationAttributes(Model model) {
+        List<Location> locations = locationRepository.findAll();
+        model.addAttribute("locations", locations);
+        model.addAttribute("cities", locations.stream().map(Location::getCity).distinct().sorted().toList());
     }
 }
