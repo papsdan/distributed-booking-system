@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -138,7 +139,9 @@ public class GameController {
                                 @AuthenticationPrincipal UserDetails userDetails) {
         try {
             model.addAttribute("game", gameService.getGameDetails(id));
-            model.addAttribute("holdExpiresAt", bookingService.getHoldExpiresAt(id, userDetails.getUsername()));
+            LocalDateTime holdExpiresAt = bookingService.getHoldExpiresAt(id, userDetails.getUsername());
+            long holdSecondsRemaining = Math.max(0, Duration.between(LocalDateTime.now(), holdExpiresAt).getSeconds());
+            model.addAttribute("holdSecondsRemaining", holdSecondsRemaining);
             model.addAttribute("creditRequestDto", new CreditRequestDTO());
             return "checkout";
         } catch (ResponseStatusException e) {

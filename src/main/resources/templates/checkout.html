@@ -20,7 +20,7 @@
                 </div>
 
                 <div class="alert alert-info" id="hold-timer-alert">
-                    Your slot is held for the next <strong id="hold-timer" th:attr="data-expires-at=${#temporals.format(holdExpiresAt, 'yyyy-MM-dd''T''HH:mm:ss')}"></strong>. Confirm your booking before the hold expires, or it will be released back to other players.
+                    Your slot is held for the next <strong id="hold-timer" th:attr="data-seconds-remaining=${holdSecondsRemaining}"></strong>. Confirm your booking before the hold expires, or it will be released back to other players.
                 </div>
 
                 <div class="alert alert-danger d-none" id="hold-expired-alert">
@@ -72,7 +72,7 @@
 
     <script>
         const holdTimer = document.getElementById('hold-timer');
-        const expiresAt = new Date(holdTimer.getAttribute('data-expires-at')).getTime();
+        const expiresAt = Date.now() + Number(holdTimer.getAttribute('data-seconds-remaining')) * 1000;
 
         function showExpired() {
             clearInterval(intervalId);
