@@ -174,6 +174,12 @@ public class GameController {
         }
     }
 
+    @PostMapping("/{id}/checkout/expire")
+    public String expireCheckout(@PathVariable Long id) {
+        bookingService.expireOverdueHeldBookings();
+        return "redirect:/games/" + id;
+    }
+
     @PostMapping("/{id}/withdraw")
     public String withdrawGame(@PathVariable Long id, RedirectAttributes redirectAttributes,
                                @AuthenticationPrincipal UserDetails userDetails) {

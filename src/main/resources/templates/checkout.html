@@ -24,7 +24,11 @@
                 </div>
 
                 <div class="alert alert-danger d-none" id="hold-expired-alert">
-                    Your hold has expired and the slot has been released. <a th:href="@{/games/{id}(id=${game.id})}">Return to the game</a> to try joining again.
+                    Your hold has expired and the slot has been released.
+                    <form method="post" th:action="@{/games/{id}/checkout/expire(id=${game.id})}" class="d-inline">
+                        <button type="submit" class="btn btn-link p-0 align-baseline border-0">Return to the game</button>
+                    </form>
+                    to try joining again.
                 </div>
 
                 <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
