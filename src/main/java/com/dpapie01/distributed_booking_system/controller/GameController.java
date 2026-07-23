@@ -256,6 +256,9 @@ public class GameController {
 
     private void addFormAttributes(Model model) {
         model.addAttribute("pitches", pitchRepository.findByActiveTrue());
+        List<Location> locations = locationRepository.findAll();
+        model.addAttribute("cities", locations.stream().map(Location::getCity).distinct().sorted().toList());
+        model.addAttribute("locations", locations);
         model.addAttribute("gameTypes", GameType.values());
         model.addAttribute("genderOptions", GameGenderOption.values());
         model.addAttribute("paymentTypes", PaymentType.values());

@@ -35,12 +35,32 @@
                     </div>
 
                     <div class="mb-3">
+                        <label for="pitchCityFilter" class="form-label">City</label>
+                        <select id="pitchCityFilter" class="form-select">
+                            <option value="">-- Any City --</option>
+                            <option th:each="c : ${cities}" th:value="${c}" th:text="${c}"></option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="pitchAreaFilter" class="form-label">Area</label>
+                        <select id="pitchAreaFilter" class="form-select">
+                            <option value="">-- Any Area --</option>
+                            <option th:each="loc : ${locations}"
+                                    th:value="${loc.area}"
+                                    th:text="${loc.area}"
+                                    th:attr="data-city=${loc.city}"></option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
                         <label for="pitchId" class="form-label">Pitch</label>
-                        <select th:field="*{pitchId}" class="form-select">
+                        <select id="pitchId" th:field="*{pitchId}" class="form-select">
                             <option value="">-- Select Pitch --</option>
                             <option th:each="p : ${pitches}"
                                     th:value="${p.id}"
-                                    th:text="${p.name + ' - ' + p.location.city + ' - ' + p.location.area}"></option>
+                                    th:text="${p.name + ' - ' + p.location.city + ' - ' + p.location.area}"
+                                    th:attr="data-city=${p.location.city},data-area=${p.location.area}"></option>
                         </select>
                         <span th:if="${#fields.hasErrors('pitchId')}"
                               th:errors="*{pitchId}"
@@ -157,6 +177,53 @@
         gameTypeSelect.addEventListener('change', syncMaxPlayersHint);
         syncPriceField();
         syncMaxPlayersHint();
+
+        const cityFilter = document.getElementById('pitchCityFilter');
+        const areaFilter = document.getElementById('pitchAreaFilter');
+        const pitchSelect = document.getElementById('pitchId');
+        const allAreaOptions = Array.from(areaFilter.options).filter(o => o.value !== '');
+        const allPitchOptions = Array.from(pitchSelect.options).filter(o => o.value !== '');
+
+        function syncAreaFilterOptions() {
+            const selectedCity = cityFilter.value;
+            const previouslySelectedValue = areaFilter.value;
+            areaFilter.innerHTML = '';
+            areaFilter.appendChild(new Option('-- Any Area --', ''));
+            allAreaOptions
+                .filter(o => !selectedCity || o.dataset.city === selectedCity)
+                .forEach(o => areaFilter.appendChild(o.cloneNode(true)));
+            if (Array.from(areaFilter.options).some(o => o.value === previouslySelectedValue)) {
+                areaFilter.value = previouslySelectedValue;
+            }
+        }
+
+        function syncPitchOptions() {
+            const selectedCity = cityFilter.value;
+            const selectedArea = areaFilter.value;
+            const previouslySelectedValue = pitchSelect.value;
+            pitchSelect.innerHTML = '';
+            pitchSelect.appendChild(new Option('-- Select Pitch --', ''));
+            allPitchOptions
+                .filter(o => (!selectedCity || o.dataset.city === selectedCity)
+                    && (!selectedArea || o.dataset.area === selectedArea))
+                .forEach(o => pitchSelect.appendChild(o.cloneNode(true)));
+            if (Array.from(pitchSelect.options).some(o => o.value === previouslySelectedValue)) {
+                pitchSelect.value = previouslySelectedValue;
+            }
+        }
+
+        const initiallySelectedPitch = allPitchOptions.find(o => o.selected);
+        if (initiallySelectedPitch) {
+            cityFilter.value = initiallySelectedPitch.dataset.city;
+        }
+        syncAreaFilterOptions();
+        if (initiallySelectedPitch) {
+            areaFilter.value = initiallySelectedPitch.dataset.area;
+        }
+        syncPitchOptions();
+
+        cityFilter.addEventListener('change', () => { syncAreaFilterOptions(); syncPitchOptions(); });
+        areaFilter.addEventListener('change', syncPitchOptions);
     </script>
 </body>
 </html>
