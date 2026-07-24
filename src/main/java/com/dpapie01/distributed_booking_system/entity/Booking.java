@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -32,6 +34,9 @@ public class Booking {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private BookingStatus status;
+
+    @Column(name = "amount_paid", precision = 10, scale = 2)
+    private BigDecimal amountPaid;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

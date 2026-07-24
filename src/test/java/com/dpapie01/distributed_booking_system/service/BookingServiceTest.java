@@ -683,6 +683,32 @@ class BookingServiceTest {
     }
 
     @Test
+    void testWithdrawSlot_RefundsAmountPaid() {
+        game.setPaymentType(PaymentType.PAID_ONLINE);
+        game.setPrice(BigDecimal.valueOf(20));
+        game.setRefundPolicy(RefundPolicy.HOURS_24);
+
+        Booking booking = new Booking();
+        booking.setId(10L);
+        booking.setSlot(slot);
+        booking.setUser(user);
+        booking.setAmountPaid(game.getPrice());
+        booking.setStatus(BookingStatus.CONFIRMED);
+
+        game.setPrice(BigDecimal.valueOf(30));
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.CONFIRMED))
+                .thenReturn(Optional.of(booking));
+
+        bookingService.withdrawSlot(1L, "jane@example.com");
+
+        verify(creditRepository).save(argThat(credit ->
+                credit.getUser() == user && credit.getAmount().compareTo(BigDecimal.valueOf(20)) == 0));
+    }
+
+    @Test
     void testWithdrawSlot_RefundsWithinWindow_Hours24() {
         game.setPaymentType(PaymentType.PAID_ONLINE);
         game.setPrice(BigDecimal.valueOf(20));
@@ -692,6 +718,7 @@ class BookingServiceTest {
         booking.setId(10L);
         booking.setSlot(slot);
         booking.setUser(user);
+        booking.setAmountPaid(game.getPrice());
         booking.setStatus(BookingStatus.CONFIRMED);
 
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
@@ -715,6 +742,7 @@ class BookingServiceTest {
         booking.setId(10L);
         booking.setSlot(slot);
         booking.setUser(user);
+        booking.setAmountPaid(game.getPrice());
         booking.setStatus(BookingStatus.CONFIRMED);
 
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
@@ -741,6 +769,7 @@ class BookingServiceTest {
         booking.setId(10L);
         booking.setSlot(slot);
         booking.setUser(user);
+        booking.setAmountPaid(game.getPrice());
         booking.setStatus(BookingStatus.CONFIRMED);
 
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
@@ -766,6 +795,7 @@ class BookingServiceTest {
         booking.setId(10L);
         booking.setSlot(slot);
         booking.setUser(user);
+        booking.setAmountPaid(game.getPrice());
         booking.setStatus(BookingStatus.CONFIRMED);
 
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
@@ -788,6 +818,7 @@ class BookingServiceTest {
         booking.setId(10L);
         booking.setSlot(slot);
         booking.setUser(user);
+        booking.setAmountPaid(game.getPrice());
         booking.setStatus(BookingStatus.CONFIRMED);
 
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
@@ -865,6 +896,7 @@ class BookingServiceTest {
         Booking overdueBooking = new Booking();
         overdueBooking.setSlot(slot);
         overdueBooking.setUser(user);
+        overdueBooking.setAmountPaid(BigDecimal.valueOf(20));
         overdueBooking.setStatus(BookingStatus.HELD);
         overdueBooking.setExpiresAt(LocalDateTime.now().minusMinutes(1));
 

@@ -200,7 +200,7 @@ public class GameService {
             if (game.getPaymentType() == PaymentType.PAID_ONLINE) {
                 Credit refund = new Credit();
                 refund.setUser(booking.getUser());
-                refund.setAmount(game.getPrice());
+                refund.setAmount(booking.getAmountPaid());
                 refund.setReason("Refund for cancelled game: " + game.getTitle());
                 creditRepository.save(refund);
             }

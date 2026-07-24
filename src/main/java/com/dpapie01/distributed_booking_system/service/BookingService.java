@@ -98,6 +98,7 @@ public class BookingService {
 
         booking.setStatus(BookingStatus.CONFIRMED);
         booking.setConfirmedAt(LocalDateTime.now());
+        booking.setAmountPaid(game.getPrice());
         bookingRepository.save(booking);
 
         if (game.getPaymentType() == PaymentType.PAID_ONLINE) {
@@ -168,7 +169,7 @@ public class BookingService {
         if (game.getPaymentType() == PaymentType.PAID_ONLINE && isWithinRefundWindow(game)) {
             Credit refund = new Credit();
             refund.setUser(user);
-            refund.setAmount(game.getPrice());
+            refund.setAmount(booking.getAmountPaid());
             refund.setReason("Refund for withdrawing from " + game.getTitle());
             creditRepository.save(refund);
         }

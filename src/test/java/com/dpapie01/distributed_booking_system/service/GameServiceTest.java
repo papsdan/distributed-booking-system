@@ -495,7 +495,10 @@ class GameServiceTest {
         Booking booking = new Booking();
         booking.setSlot(slot);
         booking.setUser(player);
+        booking.setAmountPaid(game.getPrice());
         booking.setStatus(BookingStatus.CONFIRMED);
+
+        game.setPrice(BigDecimal.valueOf(30));
 
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(bookingRepository.findBySlot_GameAndStatus(game, BookingStatus.CONFIRMED)).thenReturn(List.of(booking));
