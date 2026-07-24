@@ -30,7 +30,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 @Controller
 @RequestMapping("/games")
@@ -251,8 +250,13 @@ public class GameController {
     @PostMapping("/{id}/checkout/topup")
     public String topUpCredits(@PathVariable Long id,
                                @Valid @ModelAttribute("creditRequestDto") CreditRequestDTO dto,
+                               BindingResult result,
                                RedirectAttributes redirectAttributes,
                                @AuthenticationPrincipal UserDetails userDetails) {
+        if (result.hasErrors()) {
+            redirectAttributes.addFlashAttribute("errorMessage", result.getFieldError().getDefaultMessage());
+            return "redirect:/games/" + id + "/checkout";
+        }
         try {
             creditService.topUpCredits(dto, userDetails.getUsername());
             redirectAttributes.addFlashAttribute("successMessage", "You have successfully added " + dto.getCreditAmount() + " credits.");
