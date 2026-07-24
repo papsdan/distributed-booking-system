@@ -11,6 +11,8 @@
                 <a class="nav-link" sec:authorize="hasRole('ROLE_ADMIN')" th:href="@{/admin/pitches}">Admin: Pitches</a>
                 <a class="nav-link" sec:authorize="hasRole('ROLE_ADMIN')" th:href="@{/admin/users}">Admin: Users</a>
             </div>
+            <span class="navbar-text text-white me-3" th:if="${creditBalance != null}"
+                  th:text="${creditBalance + ' credits'}"></span>
             <form method="post" th:action="@{/logout}" class="d-flex">
                 <button type="submit" class="btn btn-outline-light btn-sm">Log Out</button>
             </form>
