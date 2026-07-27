@@ -84,7 +84,7 @@
                         <span th:if="${game.locationCity == preferredLocationCity and game.locationArea == preferredLocationArea}"
                               class="badge bg-info text-dark">Matches your preferred area</span>
                     </td>
-                    <td th:text="${game.gameDate}"></td>
+                    <td th:text="${#temporals.format(game.gameDate, 'EEEE, d MMM yyyy')}"></td>
                     <td th:text="${game.gameTime}"></td>
                     <td th:text="${game.gameType.label}"></td>
                     <td th:text="${game.genderOption}"></td>

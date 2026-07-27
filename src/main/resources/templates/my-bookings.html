@@ -31,7 +31,7 @@
                 <tr th:each="booking : ${bookings}" th:if="${!booking.pastGame}" th:id="'booking-' + ${booking.id}">
                     <td th:text="${booking.gameTitle}"></td>
                     <td th:text="${booking.pitchName + ' - ' + booking.locationCity + ' - ' + booking.locationArea}"></td>
-                    <td th:text="${booking.gameDate}"></td>
+                    <td th:text="${#temporals.format(booking.gameDate, 'EEEE, d MMM yyyy')}"></td>
                     <td th:text="${booking.gameTime}"></td>
                     <td th:text="${booking.status}"></td>
                     <td>
@@ -62,7 +62,7 @@
                 <tr th:each="booking : ${bookings}" th:if="${booking.pastGame}" th:id="'booking-' + ${booking.id}">
                     <td th:text="${booking.gameTitle}"></td>
                     <td th:text="${booking.pitchName + ' - ' + booking.locationCity + ' - ' + booking.locationArea}"></td>
-                    <td th:text="${booking.gameDate}"></td>
+                    <td th:text="${#temporals.format(booking.gameDate, 'EEEE, d MMM yyyy')}"></td>
                     <td th:text="${booking.gameTime}"></td>
                     <td th:text="${booking.status}"></td>
                     <td>
