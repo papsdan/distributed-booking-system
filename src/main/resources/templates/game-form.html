@@ -61,11 +61,12 @@
                             <option th:each="p : ${pitches}"
                                     th:value="${p.id}"
                                     th:text="${p.name + ' - ' + p.location.city + ' - ' + p.location.area}"
-                                    th:attr="data-city=${p.location.city},data-area=${p.location.area}"></option>
+                                    th:attr="data-city=${p.location.city},data-area=${p.location.area},data-capacity=${p.capacity}"></option>
                         </select>
                         <span th:if="${#fields.hasErrors('pitchId')}"
                               th:errors="*{pitchId}"
                               class="text-danger small"></span>
+                        <div id="pitchCapacityHint" class="form-text"></div>
                     </div>
 
                     <div class="mb-3">
@@ -190,8 +191,28 @@
         const cityFilter = document.getElementById('pitchCityFilter');
         const areaFilter = document.getElementById('pitchAreaFilter');
         const pitchSelect = document.getElementById('pitchId');
+        const pitchCapacityHint = document.getElementById('pitchCapacityHint');
         const allAreaOptions = Array.from(areaFilter.options).filter(o => o.value !== '');
         const allPitchOptions = Array.from(pitchSelect.options).filter(o => o.value !== '');
+
+        function syncPitchCapacityHint() {
+            const selectedPitch = pitchSelect.selectedOptions[0];
+            const capacity = selectedPitch ? Number(selectedPitch.dataset.capacity) : null;
+
+            Array.from(gameTypeSelect.options).forEach(o => {
+                if (o.value !== '') {
+                    o.disabled = !!capacity && Number(o.dataset.maxPlayers) > capacity;
+                }
+            });
+            if (gameTypeSelect.selectedOptions[0] && gameTypeSelect.selectedOptions[0].disabled) {
+                gameTypeSelect.value = '';
+                syncMaxPlayersHint();
+            }
+
+            pitchCapacityHint.textContent = capacity
+                ? `This pitch holds up to ${capacity} players - game types above this won't be selectable.`
+                : '';
+        }
 
         function syncAreaFilterOptions() {
             const selectedCity = cityFilter.value;
@@ -219,6 +240,7 @@
             if (Array.from(pitchSelect.options).some(o => o.value === previouslySelectedValue)) {
                 pitchSelect.value = previouslySelectedValue;
             }
+            syncPitchCapacityHint();
         }
 
         const initiallySelectedPitch = allPitchOptions.find(o => o.selected);
@@ -233,6 +255,7 @@
 
         cityFilter.addEventListener('change', () => { syncAreaFilterOptions(); syncPitchOptions(); });
         areaFilter.addEventListener('change', syncPitchOptions);
+        pitchSelect.addEventListener('change', syncPitchCapacityHint);
     </script>
 </body>
 </html>
