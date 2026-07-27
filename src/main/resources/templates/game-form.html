@@ -121,7 +121,7 @@
                         <label for="paymentType" class="form-label">Payment Type</label>
                         <select id="paymentType" th:field="*{paymentType}" class="form-select">
                             <option value="">-- Select Payment Type --</option>
-                            <option th:each="type : ${paymentTypes}" th:value="${type}" th:text="${type}"></option>
+                            <option th:each="type : ${paymentTypes}" th:value="${type}" th:text="${type.label}"></option>
                         </select>
                         <span th:if="${#fields.hasErrors('paymentType')}"
                               th:errors="*{paymentType}"
@@ -140,7 +140,7 @@
                         <label for="refundPolicy" class="form-label">Refund Policy</label>
                         <select id="refundPolicy" th:field="*{refundPolicy}" class="form-select">
                             <option value="">-- Select Refund Policy --</option>
-                            <option th:each="policy : ${refundPolicies}" th:value="${policy}" th:text="${policy}"></option>
+                            <option th:each="policy : ${refundPolicies}" th:value="${policy}" th:text="${policy.label}"></option>
                         </select>
                         <span th:if="${#fields.hasErrors('refundPolicy')}"
                               th:errors="*{refundPolicy}"
