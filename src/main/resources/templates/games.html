@@ -96,7 +96,8 @@
                         <a th:if="${game.organiserEmail == currentUserEmail or #authorization.expression('hasRole(''ROLE_ADMIN'')')}"
                            th:href="@{/games/{id}/edit(id=${game.id})}" class="btn btn-outline-secondary btn-sm">Edit</a>
                         <form th:if="${(game.organiserEmail == currentUserEmail or #authorization.expression('hasRole(''ROLE_ADMIN'')')) and game.status.name() != 'CANCELLED' and !game.pastGame}"
-                              method="post" th:action="@{/games/{id}/cancel(id=${game.id})}" class="d-inline">
+                              method="post" th:action="@{/games/{id}/cancel(id=${game.id})}" class="d-inline cancel-form"
+                              data-confirm-message="Are you sure you want to cancel this game? All confirmed players will be refunded.">
                             <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
                         </form>
                     </td>
@@ -105,5 +106,15 @@
         </table>
 
     </div>
+
+    <script>
+        document.querySelectorAll('.cancel-form').forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!confirm(form.getAttribute('data-confirm-message'))) {
+                    event.preventDefault();
+                }
+            });
+        });
+    </script>
 </body>
 </html>
