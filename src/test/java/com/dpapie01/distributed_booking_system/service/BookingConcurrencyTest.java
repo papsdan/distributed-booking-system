@@ -126,7 +126,7 @@ class BookingConcurrencyTest {
         Profile profile = new Profile();
         profile.setUser(user);
         profile.setPreferredLocation(location);
-        profile.setGender(Gender.MAN);
+        profile.setGender(Gender.MALE);
         profiles.add(profileRepository.save(profile));
 
         return user;

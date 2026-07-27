@@ -67,12 +67,12 @@ class ProfileServiceTest {
         profile = new Profile();
         profile.setId(1L);
         profile.setUser(user);
-        profile.setGender(Gender.MAN);
+        profile.setGender(Gender.MALE);
         profile.setPreferredLocation(location);
 
         profileResponse = new ProfileResponseDTO();
         profileResponse.setId(1L);
-        profileResponse.setGender(Gender.MAN);
+        profileResponse.setGender(Gender.MALE);
         profileResponse.setPreferredLocationCity("London");
         profileResponse.setPreferredLocationArea("Finsbury Park");
 
@@ -83,11 +83,11 @@ class ProfileServiceTest {
 
         updateProfileRequest = new UpdateProfileRequestDTO();
         updateProfileRequest.setLocationId(2L);
-        updateProfileRequest.setGender(Gender.WOMAN);
+        updateProfileRequest.setGender(Gender.FEMALE);
 
         updatedProfileResponse = new ProfileResponseDTO();
         updatedProfileResponse.setId(1L);
-        updatedProfileResponse.setGender(Gender.WOMAN);
+        updatedProfileResponse.setGender(Gender.FEMALE);
         updatedProfileResponse.setPreferredLocationCity("Manchester");
         updatedProfileResponse.setPreferredLocationArea("Salford");
     }
@@ -101,7 +101,7 @@ class ProfileServiceTest {
         ProfileResponseDTO result = profileService.getProfile("jon@example.com");
 
         assertEquals(1L, result.getId());
-        assertEquals(Gender.MAN, result.getGender());
+        assertEquals(Gender.MALE, result.getGender());
         assertEquals("London", result.getPreferredLocationCity());
         assertEquals("Finsbury Park", result.getPreferredLocationArea());
         verify(userRepository).findByEmail("jon@example.com");
@@ -188,7 +188,7 @@ class ProfileServiceTest {
         ProfileResponseDTO result = profileService.updateProfile(updateProfileRequest,"jon@example.com");
 
         assertEquals(1L, result.getId());
-        assertEquals(Gender.WOMAN, result.getGender());
+        assertEquals(Gender.FEMALE, result.getGender());
         assertEquals("Manchester", result.getPreferredLocationCity());
         assertEquals("Salford", result.getPreferredLocationArea());
 

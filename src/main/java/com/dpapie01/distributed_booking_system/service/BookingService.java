@@ -225,7 +225,7 @@ public class BookingService {
         Profile profile = profileRepository.findByUser(user)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile not found"));
         if (!profile.getGender().isEligibleFor(game.getGenderOption())) {
-            String openTo = game.getGenderOption() == GameGenderOption.MENS ? "Men" : "Women";
+            String openTo = game.getGenderOption() == GameGenderOption.MEN ? "Men" : "Women";
             return "This game is open to " + openTo + " only";
         }
         if (bookingRepository.existsBySlot_GameAndUserAndStatus(game, user, BookingStatus.CONFIRMED)) {

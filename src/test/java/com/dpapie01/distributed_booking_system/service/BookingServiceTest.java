@@ -98,7 +98,7 @@ class BookingServiceTest {
 
         profile = new Profile();
         profile.setUser(user);
-        profile.setGender(Gender.WOMAN);
+        profile.setGender(Gender.FEMALE);
 
 
     }
@@ -154,8 +154,8 @@ class BookingServiceTest {
 
     @Test
     void testHoldSlot_GenderIneligible_WomanBlockedFromMensGame() {
-        game.setGenderOption(GameGenderOption.MENS);
-        profile.setGender(Gender.WOMAN);
+        game.setGenderOption(GameGenderOption.MEN);
+        profile.setGender(Gender.FEMALE);
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
         when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
@@ -169,8 +169,8 @@ class BookingServiceTest {
 
     @Test
     void testHoldSlot_GenderIneligible_ManBlockedFromWomensGame() {
-        game.setGenderOption(GameGenderOption.WOMENS);
-        profile.setGender(Gender.MAN);
+        game.setGenderOption(GameGenderOption.WOMEN);
+        profile.setGender(Gender.MALE);
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
         when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
@@ -184,7 +184,7 @@ class BookingServiceTest {
 
     @Test
     void testHoldSlot_GenderIneligible_PreferNotToSayBlockedFromMensGame() {
-        game.setGenderOption(GameGenderOption.MENS);
+        game.setGenderOption(GameGenderOption.MEN);
         profile.setGender(Gender.PREFER_NOT_TO_SAY);
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
@@ -199,7 +199,7 @@ class BookingServiceTest {
 
     @Test
     void testHoldSlot_GenderIneligible_PreferNotToSayBlockedFromWomensGame() {
-        game.setGenderOption(GameGenderOption.WOMENS);
+        game.setGenderOption(GameGenderOption.WOMEN);
         profile.setGender(Gender.PREFER_NOT_TO_SAY);
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
@@ -229,7 +229,7 @@ class BookingServiceTest {
 
     @Test
     void testHoldSlot_NonBinaryEligibleForMensGame() {
-        game.setGenderOption(GameGenderOption.MENS);
+        game.setGenderOption(GameGenderOption.MEN);
         profile.setGender(Gender.NON_BINARY);
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
@@ -244,7 +244,7 @@ class BookingServiceTest {
 
     @Test
     void testHoldSlot_NonBinaryEligibleForWomensGame() {
-        game.setGenderOption(GameGenderOption.WOMENS);
+        game.setGenderOption(GameGenderOption.WOMEN);
         profile.setGender(Gender.NON_BINARY);
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
