@@ -5,6 +5,8 @@ import com.dpapie01.distributed_booking_system.entity.Game;
 import com.dpapie01.distributed_booking_system.entity.User;
 import com.dpapie01.distributed_booking_system.enums.BookingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -19,4 +21,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByUserAndStatus(User user, BookingStatus status);
     List<Booking> findByUser(User user);
     List<Booking> findByStatusAndExpiresAtBefore(BookingStatus status, LocalDateTime cutoff);
+    @Query(value = "SELECT pg_try_advisory_xact_lock(:key)", nativeQuery = true)
+    boolean tryLock(@Param("key") long key);
 }

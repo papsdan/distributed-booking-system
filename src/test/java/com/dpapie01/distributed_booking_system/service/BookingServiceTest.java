@@ -41,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -881,6 +882,7 @@ class BookingServiceTest {
 
     @Test
     void testExpireOverdueHeldBookings_NoneOverdue() {
+        when(bookingRepository.tryLock(anyLong())).thenReturn(true);
         when(bookingRepository.findByStatusAndExpiresAtBefore(eq(BookingStatus.HELD), any(LocalDateTime.class)))
                 .thenReturn(List.of());
 
@@ -900,6 +902,7 @@ class BookingServiceTest {
         overdueBooking.setStatus(BookingStatus.HELD);
         overdueBooking.setExpiresAt(LocalDateTime.now().minusMinutes(1));
 
+        when(bookingRepository.tryLock(anyLong())).thenReturn(true);
         when(bookingRepository.findByStatusAndExpiresAtBefore(eq(BookingStatus.HELD), any(LocalDateTime.class)))
                 .thenReturn(List.of(overdueBooking));
 
@@ -909,5 +912,16 @@ class BookingServiceTest {
         assertEquals(BookingStatus.EXPIRED, overdueBooking.getStatus());
         verify(gameSlotRepository).save(slot);
         verify(bookingRepository).save(overdueBooking);
+    }
+
+    @Test
+    void testExpireOverdueHeldBookings_LockNotAcquired() {
+        when(bookingRepository.tryLock(anyLong())).thenReturn(false);
+
+        bookingService.expireOverdueHeldBookings();
+
+        verify(bookingRepository, never()).findByStatusAndExpiresAtBefore(any(), any());
+        verify(gameSlotRepository, never()).save(any());
+        verify(bookingRepository, never()).save(any());
     }
 }

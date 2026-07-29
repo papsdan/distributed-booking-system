@@ -44,6 +44,7 @@ public class BookingService {
     private final BookingMapper bookingMapper;
 
     private static final int HOLD_MINUTES = 3;
+    private static final long HOLD_EXPIRY_JOB_LOCK = 12345L;
 
     @Transactional
     public void holdSlot(Long gameId, String userEmail){
@@ -136,6 +137,9 @@ public class BookingService {
 
     @Transactional
     public void expireOverdueHeldBookings() {
+        if(!bookingRepository.tryLock(HOLD_EXPIRY_JOB_LOCK)){
+            return;
+        }
         List<Booking> overdueHeldBookings = bookingRepository.findByStatusAndExpiresAtBefore(BookingStatus.HELD, LocalDateTime.now());
         for (Booking booking : overdueHeldBookings) {
             GameSlot slot = booking.getSlot();
