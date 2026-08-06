@@ -331,6 +331,7 @@ class BookingServiceTest {
 
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
         when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.HELD))
                 .thenReturn(Optional.of(heldBooking));
 
@@ -341,6 +342,34 @@ class BookingServiceTest {
         assertNotNull(heldBooking.getConfirmedAt());
         verify(gameSlotRepository).save(slot);
         verify(bookingRepository).save(heldBooking);
+    }
+
+    @Test
+    void testConfirmSlot_IneligibleGender_Blocked() {
+        game.setGenderOption(GameGenderOption.WOMEN);
+        profile.setGender(Gender.MALE);
+        slot.setStatus(GameSlotStatus.HELD);
+        Booking heldBooking = new Booking();
+        heldBooking.setId(10L);
+        heldBooking.setSlot(slot);
+        heldBooking.setUser(user);
+        heldBooking.setStatus(BookingStatus.HELD);
+        heldBooking.setExpiresAt(LocalDateTime.now().plusMinutes(2));
+
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+        when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.HELD))
+                .thenReturn(Optional.of(heldBooking));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> bookingService.confirmSlot(1L, "jane@example.com"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("This game is open to Women only", ex.getReason());
+        assertEquals(GameSlotStatus.HELD, slot.getStatus());
+        verify(gameSlotRepository, never()).save(any());
+        verify(bookingRepository, never()).save(any());
     }
 
     @Test
@@ -630,6 +659,7 @@ class BookingServiceTest {
 
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
         when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.HELD))
                 .thenReturn(Optional.of(heldBooking));
         when(creditRepository.sumAmountByUser(user)).thenReturn(BigDecimal.valueOf(10));
@@ -673,6 +703,7 @@ class BookingServiceTest {
 
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("jane@example.com")).thenReturn(Optional.of(user));
+        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
         when(bookingRepository.findBySlot_GameAndUserAndStatus(game, user, BookingStatus.HELD))
                 .thenReturn(Optional.of(heldBooking));
         when(creditRepository.sumAmountByUser(user)).thenReturn(BigDecimal.valueOf(100));

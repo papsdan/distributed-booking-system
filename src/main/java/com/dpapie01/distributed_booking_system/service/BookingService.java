@@ -85,6 +85,12 @@ public class BookingService {
         if(booking.getExpiresAt().isBefore(LocalDateTime.now())){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your booking slot hold has expired. Please try again joining again");
         }
+        Profile profile = profileRepository.findByUser(user)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile not found"));
+        if (!profile.getGender().isEligibleFor(game.getGenderOption())) {
+            String openTo = game.getGenderOption() == GameGenderOption.MEN ? "Men" : "Women";
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This game is open to " + openTo + " only");
+        }
 
         if (game.getPaymentType() == PaymentType.PAID_ONLINE) {
             BigDecimal userBalance = creditRepository.sumAmountByUser(user);
