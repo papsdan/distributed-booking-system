@@ -46,6 +46,17 @@ class HttpUserDetailsServiceTest {
 
         assertEquals("jon@example.com", result.getUsername());
         assertEquals("password123", result.getPassword());
+        assertTrue(result.isEnabled());
+    }
+
+    @Test
+    void testLoadUserByUsername_InactiveUser_ReturnsDisabledUser() {
+        user.setActive(false);
+        when(userRepository.findByEmail("jon@example.com")).thenReturn(Optional.of(user));
+
+        UserDetails result = httpUserDetailsService.loadUserByUsername("jon@example.com");
+
+        assertFalse(result.isEnabled());
         verify(userRepository).findByEmail("jon@example.com");
     }
 

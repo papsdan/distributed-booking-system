@@ -25,7 +25,15 @@ public class HttpUserDetailsService implements UserDetailsService {
 
         final List<SimpleGrantedAuthority> roles = List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
 
-        return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), roles);
+        return new org.springframework.security.core.userdetails.User(
+                user.getEmail(), // username
+                user.getPassword(), // password
+                user.getActive(), // enabled
+                true, // accountNonExpired
+                true, // credentialsNonExpired
+                true, // accountNonLocked
+                roles // authorities
+        );
 
     }
 }
