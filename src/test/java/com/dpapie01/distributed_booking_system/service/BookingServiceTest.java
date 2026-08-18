@@ -166,6 +166,8 @@ class BookingServiceTest {
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
         assertEquals("This game is open to Men only", ex.getReason());
+        verify(gameSlotRepository, never()).saveAndFlush(any());
+        verify(bookingRepository, never()).save(any());
     }
 
     @Test
@@ -181,6 +183,8 @@ class BookingServiceTest {
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
         assertEquals("This game is open to Women only", ex.getReason());
+        verify(gameSlotRepository, never()).saveAndFlush(any());
+        verify(bookingRepository, never()).save(any());
     }
 
     @Test
@@ -196,6 +200,8 @@ class BookingServiceTest {
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
         assertEquals("This game is open to Men only", ex.getReason());
+        verify(gameSlotRepository, never()).saveAndFlush(any());
+        verify(bookingRepository, never()).save(any());
     }
 
     @Test
@@ -211,6 +217,8 @@ class BookingServiceTest {
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
         assertEquals("This game is open to Women only", ex.getReason());
+        verify(gameSlotRepository, never()).saveAndFlush(any());
+        verify(bookingRepository, never()).save(any());
     }
 
     @Test
