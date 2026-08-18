@@ -154,7 +154,7 @@ class BookingServiceTest {
     }
 
     @Test
-    void testHoldSlot_GenderIneligible_WomanBlockedFromMensGame() {
+    void testHoldSlot_GenderIneligible_FemaleBlockedFromMensGame() {
         game.setGenderOption(GameGenderOption.MEN);
         profile.setGender(Gender.FEMALE);
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
@@ -171,7 +171,7 @@ class BookingServiceTest {
     }
 
     @Test
-    void testHoldSlot_GenderIneligible_ManBlockedFromWomensGame() {
+    void testHoldSlot_GenderIneligible_MaleBlockedFromWomensGame() {
         game.setGenderOption(GameGenderOption.WOMEN);
         profile.setGender(Gender.MALE);
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
