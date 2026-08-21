@@ -210,6 +210,7 @@ public class GameController {
 
         model.addAttribute("gameRequestDto", dto);
         model.addAttribute("gameId", id);
+        model.addAttribute("hasActiveBookings", game.getHasActiveBookings());
         addFormAttributes(model);
         return "game-form";
     }

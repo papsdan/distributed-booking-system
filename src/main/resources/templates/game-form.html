@@ -17,6 +17,9 @@
 
                 <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
                 <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+                <div th:if="${hasActiveBookings}" class="alert alert-info">
+                    This game already has players booked in, so pitch, game type and gender option fields can no longer be changed. If you want to change any of these, please cancel the game and create a new one.
+                </div>
 
                 <form method="post"
                       th:action="${gameId} != null ? @{/games/{id}(id=${gameId})} : @{/games}"
@@ -56,13 +59,14 @@
 
                     <div class="mb-3">
                         <label for="pitchId" class="form-label">Pitch</label>
-                        <select id="pitchId" th:field="*{pitchId}" class="form-select">
+                        <select id="pitchId" th:field="*{pitchId}" th:disabled="${hasActiveBookings}" class="form-select">
                             <option value="">-- Select Pitch --</option>
                             <option th:each="p : ${pitches}"
                                     th:value="${p.id}"
                                     th:text="${p.name + ' - ' + p.location.city + ' - ' + p.location.area}"
                                     th:attr="data-city=${p.location.city},data-area=${p.location.area},data-capacity=${p.capacity}"></option>
                         </select>
+                        <input type="hidden" th:if="${hasActiveBookings}" name="pitchId" th:value="*{pitchId}" />
                         <span th:if="${#fields.hasErrors('pitchId')}"
                               th:errors="*{pitchId}"
                               class="text-danger small"></span>
@@ -95,11 +99,12 @@
 
                     <div class="mb-3">
                         <label for="gameType" class="form-label">Game Type</label>
-                        <select id="gameType" th:field="*{gameType}" class="form-select">
+                        <select id="gameType" th:field="*{gameType}" th:disabled="${hasActiveBookings}" class="form-select">
                             <option value="">-- Select Game Type --</option>
                             <option th:each="type : ${gameTypes}" th:value="${type}" th:text="${type.label}"
                                     th:attr="data-max-players=${type.maxPlayers}"></option>
                         </select>
+                        <input type="hidden" th:if="${hasActiveBookings}" name="gameType" th:value="*{gameType}" />
                         <span th:if="${#fields.hasErrors('gameType')}"
                               th:errors="*{gameType}"
                               class="text-danger small"></span>
@@ -108,10 +113,11 @@
 
                     <div class="mb-3">
                         <label for="genderOption" class="form-label">Gender Option</label>
-                        <select th:field="*{genderOption}" class="form-select">
+                        <select id="genderOption" th:field="*{genderOption}" th:disabled="${hasActiveBookings}" class="form-select">
                             <option value="">-- Select Gender Option --</option>
                             <option th:each="option : ${genderOptions}" th:value="${option}" th:text="${option}"></option>
                         </select>
+                        <input type="hidden" th:if="${hasActiveBookings}" name="genderOption" th:value="*{genderOption}" />
                         <span th:if="${#fields.hasErrors('genderOption')}"
                               th:errors="*{genderOption}"
                               class="text-danger small"></span>

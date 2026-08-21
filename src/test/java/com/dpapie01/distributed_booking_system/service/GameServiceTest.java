@@ -356,6 +356,62 @@ class GameServiceTest {
     }
 
     @Test
+    void testUpdateGame_BlockedWhenGenderOptionChangedWithActiveBookings() {
+        gameRequest.setGenderOption(GameGenderOption.MEN);
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(pitchRepository.findById(1L)).thenReturn(Optional.of(pitch));
+        when(bookingRepository.findBySlot_GameAndStatus(game, BookingStatus.HELD))
+                .thenReturn(List.of(new Booking()));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> gameService.updateGame(gameRequest, 1L, "jon@example.com"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("Pitch, game type and gender option cannot be changed once players have joined or are checking out.",
+                ex.getReason());
+        verify(gameRepository, never()).save(any());
+    }
+
+    @Test
+    void testUpdateGame_BlockedWhenGameTypeChangedWithActiveBookings() {
+        gameRequest.setGameType(GameType.NINE_A_SIDE);
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(pitchRepository.findById(1L)).thenReturn(Optional.of(pitch));
+        when(bookingRepository.findBySlot_GameAndStatus(game, BookingStatus.HELD))
+                .thenReturn(List.of(new Booking()));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> gameService.updateGame(gameRequest, 1L, "jon@example.com"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("Pitch, game type and gender option cannot be changed once players have joined or are checking out.",
+                ex.getReason());
+        verify(gameRepository, never()).save(any());
+    }
+
+    @Test
+    void testUpdateGame_BlockedWhenPitchChangedWithActiveBookings() {
+        Pitch otherPitch = new Pitch();
+        otherPitch.setId(2L);
+        otherPitch.setActive(true);
+        otherPitch.setCapacity(20);
+
+        gameRequest.setPitchId(2L);
+        when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
+        when(pitchRepository.findById(2L)).thenReturn(Optional.of(otherPitch));
+        when(bookingRepository.findBySlot_GameAndStatus(game, BookingStatus.HELD))
+                .thenReturn(List.of(new Booking()));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> gameService.updateGame(gameRequest, 1L, "jon@example.com"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("Pitch, game type and gender option cannot be changed once players have joined or are checking out.",
+                ex.getReason());
+        verify(gameRepository, never()).save(any());
+    }
+
+    @Test
     void testUpdateGame_AdminNotOrganiser() {
         when(gameRepository.findById(1L)).thenReturn(Optional.of(game));
         when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(admin));

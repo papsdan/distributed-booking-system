@@ -67,7 +67,9 @@ public class GameService {
 
         assertOrganiserOrAdmin(game, currentUserEmail);
 
-        return gameMapper.toResponseDTO(game);
+        GameResponseDTO dto = gameMapper.toResponseDTO(game);
+        dto.setHasActiveBookings(hasActiveBookings(game));
+        return dto;
     }
 
     private int countSlots(Game game, GameSlotStatus status) {
@@ -120,6 +122,16 @@ public class GameService {
 
         Pitch pitch = validatePitchAndCapacity(dto);
 
+        boolean restrictedFieldChanged =
+                !game.getPitch().getId().equals(dto.getPitchId()) ||
+                game.getGameType() != dto.getGameType() ||
+                game.getGenderOption() != dto.getGenderOption();
+
+        if (restrictedFieldChanged && hasActiveBookings(game)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Pitch, game type and gender option cannot be changed once players have joined or are checking out.");
+        }
+
         game.setPitch(pitch);
         game.setTitle(dto.getTitle());
         game.setDescription(dto.getDescription());
@@ -134,6 +146,11 @@ public class GameService {
         game.setRefundPolicy(dto.getRefundPolicy());
 
         return gameMapper.toResponseDTO(gameRepository.save(game));
+    }
+
+    private boolean hasActiveBookings(Game game) {
+        return !bookingRepository.findBySlot_GameAndStatus(game, BookingStatus.HELD).isEmpty() ||
+                !bookingRepository.findBySlot_GameAndStatus(game, BookingStatus.CONFIRMED).isEmpty();
     }
 
     private Pitch validatePitchAndCapacity(GameRequestDTO dto) {
