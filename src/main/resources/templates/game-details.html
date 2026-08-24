@@ -100,14 +100,12 @@
                         <tr>
                             <th>Name</th>
                             <th>Username</th>
-                            <th>Email</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:each="attendee : ${attendees}">
                             <td th:text="${attendee.firstName + ' ' + attendee.lastName}"></td>
                             <td th:text="${attendee.username}"></td>
-                            <td th:text="${attendee.email}"></td>
                         </tr>
                     </tbody>
                 </table>
