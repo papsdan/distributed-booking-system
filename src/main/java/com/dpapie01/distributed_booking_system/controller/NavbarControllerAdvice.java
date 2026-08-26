@@ -29,4 +29,14 @@ public class NavbarControllerAdvice {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         return creditRepository.sumAmountByUser(user);
     }
+
+    @ModelAttribute("loggedInUsername")
+    public String loggedInUsername(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return null;
+        }
+        return userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"))
+                .getUsername();
+    }
 }
