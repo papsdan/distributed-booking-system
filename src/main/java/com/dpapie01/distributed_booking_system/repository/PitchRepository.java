@@ -7,6 +7,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * This interface is the repository for Pitch entities.
+ */
 @Repository
 public interface PitchRepository extends JpaRepository<Pitch, Long> {
     boolean existsByName(String name);

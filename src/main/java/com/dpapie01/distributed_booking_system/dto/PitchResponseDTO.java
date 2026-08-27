@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * This class is the response DTO for a pitch, including its location details.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

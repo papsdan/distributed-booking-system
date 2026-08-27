@@ -8,6 +8,9 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
+/**
+ * This class is the request DTO for a user topping up their credit balance.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

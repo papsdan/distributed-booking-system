@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * This class is the response DTO for a user's profile, including their preferred location details.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

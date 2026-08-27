@@ -6,6 +6,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * This interface is the repository for Location entities.
+ */
 @Repository
 public interface LocationRepository extends JpaRepository<Location, Long> {
 }

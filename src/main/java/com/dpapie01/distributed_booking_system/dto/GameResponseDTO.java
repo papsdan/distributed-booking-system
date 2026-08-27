@@ -14,6 +14,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+/**
+ * This class is the response DTO for a game, including pitch, location and organiser details.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
@@ -35,13 +38,24 @@ public class GameResponseDTO {
     private GameType gameType;
     private GameGenderOption genderOption;
     private Integer maxPlayers;
+
+    /** Number of players with a confirmed booking.*/
     private Integer attendingCount;
+
+    /** Number of slots still available to claim.*/
     private Integer remainingSlots;
+
+    /** Number of slots currently held at checkout.*/
     private Integer heldSlots;
+
     private BigDecimal price;
     private PaymentType paymentType;
     private RefundPolicy refundPolicy;
     private GameStatus status;
+
+    /** Boolean check whether the game's date/time has already passed.*/
     private Boolean pastGame;
+
+    /** Boolean check whether the game has any HELD or CONFIRMED bookings, used to lock certain edit fields on the front end.*/
     private Boolean hasActiveBookings;
 }

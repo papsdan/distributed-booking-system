@@ -9,6 +9,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * This interface is the repository for GameSlot entities.
+ */
 @Repository
 public interface GameSlotRepository extends JpaRepository<GameSlot, Long> {
     long countByGameAndStatus(Game game, GameSlotStatus status);

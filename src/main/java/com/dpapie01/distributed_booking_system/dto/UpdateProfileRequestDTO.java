@@ -7,6 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * This class is the request DTO for updating a user's profile.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

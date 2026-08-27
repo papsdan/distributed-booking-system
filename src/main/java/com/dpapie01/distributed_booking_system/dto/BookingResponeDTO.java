@@ -10,6 +10,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+/**
+ * This class is the response DTO for a booking, including the game details it belongs to.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
@@ -29,6 +32,10 @@ public class BookingResponeDTO {
     private LocalDateTime confirmedAt;
     private LocalDateTime withdrawnAt;
     private LocalDateTime expiresAt;
+
+    /** Boolean check whether the game's date/time has already passed.*/
     private Boolean pastGame;
+
+    /** Confirmation message to show before withdrawing on the front-end, if applicable. */
     private String withdrawConfirmMessage;
 }

@@ -21,6 +21,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+/**
+ * This class is the request DTO for creating or updating a game.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

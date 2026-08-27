@@ -12,9 +12,24 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * This interface is the repository for Game entities.
+ */
 @Repository
 public interface GameRepository extends JpaRepository<Game, Long> {
 
+    /**
+     * Searches for upcoming and non-cancelled games matching the optional filters.
+     * A null filter value is treated as "match any".
+     * @param city city to filter by
+     * @param area area to filter by
+     * @param gameType game type to filter by
+     * @param genderOption gender option to filter by
+     * @param gameDate date to filter by
+     * @param maxPrice maximum price to filter by
+     * @param openSlotsOnly if true, only include games with at least one available slot
+     * @return matching games ordered by date and time
+     */
     @Query("SELECT g FROM Game g WHERE " +
             "g.pitch.location.city = COALESCE(:city, g.pitch.location.city) AND " +
             "g.pitch.location.area = COALESCE(:area, g.pitch.location.area) AND " +

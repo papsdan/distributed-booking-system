@@ -11,6 +11,10 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+/**
+ * This class is the request DTO for filtering the game search/listing page. All fields
+ * are optional.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
@@ -26,5 +30,7 @@ public class GameFilterDTO {
     private LocalDate gameDate;
 
     private BigDecimal maxPrice;
+
+    /** Boolean check whether the game has open slots. If true, only include games that still have an available slot.*/
     private boolean openSlotsOnly;
 }

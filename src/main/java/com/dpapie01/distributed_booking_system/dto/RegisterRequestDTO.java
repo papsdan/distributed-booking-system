@@ -10,6 +10,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * This class is the request DTO for registering a new user account.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

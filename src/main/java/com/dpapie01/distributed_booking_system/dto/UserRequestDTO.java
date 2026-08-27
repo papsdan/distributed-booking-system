@@ -7,6 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * This class is the request DTO for an admin updating a user's role or active status.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

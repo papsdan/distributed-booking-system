@@ -10,6 +10,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * This class is the request DTO for creating or updating a pitch.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

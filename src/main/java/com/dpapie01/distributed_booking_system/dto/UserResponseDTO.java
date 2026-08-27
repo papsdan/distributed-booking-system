@@ -8,6 +8,9 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+/**
+ * This class is the response DTO for a user account. Does not include the password hash intentionally for security purposes.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

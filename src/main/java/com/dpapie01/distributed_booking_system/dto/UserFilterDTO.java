@@ -8,6 +8,10 @@ import lombok.Setter;
 
 import java.util.List;
 
+/**
+ * This class is the request DTO for filtering the user search/listing page. All fields
+ * are optional.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
@@ -15,6 +19,8 @@ import java.util.List;
 public class UserFilterDTO {
 
     private String searchQuery;
+
+    /** Boolean check whether user is active. If true, only include active users.*/
     private boolean activeOnly;
     private List<Role> roles;
 }

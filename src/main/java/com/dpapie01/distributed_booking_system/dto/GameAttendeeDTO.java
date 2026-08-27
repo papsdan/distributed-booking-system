@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * This class is the response DTO for a player attending a game (i.e. with a confirmed booking).
+ */
 @Getter
 @Setter
 @AllArgsConstructor
