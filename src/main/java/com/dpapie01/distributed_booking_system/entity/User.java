@@ -10,6 +10,12 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
+/**
+ * Represents a registered account in the system, used for authentication and
+ * the owners of games, bookings and credits.
+ * Additional player attributes (gender, preferred location) live in the
+ * associated Profile.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
@@ -34,16 +40,20 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
+    /** Hashed password used for authentication.*/
     @Column(nullable = false)
     private String password;
 
+    /** Authorisation role determining what the user is permitted to do (e.g. PLAYER, ADMIN).*/
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role = Role.PLAYER;
 
+    /** Active status showing if the account is currently active - deactivated users are prevented from logging in.*/
     @Column(nullable = false)
     private Boolean active = true;
 
+    /** Time when the account was deactivated, if applicable. */
     @Column(name = "deactivated_at")
     private LocalDateTime deactivatedAt;
 

@@ -7,6 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Holds Users profile information, including gender and preferred location (city/area).
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,14 +22,17 @@ public class Profile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** The user this profile belongs to. */
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
+    /** Location the user prefers to see games flagged for. */
     @ManyToOne
     @JoinColumn(name = "preferred_location_id", nullable = false)
     private Location preferredLocation;
 
+    /** User's gender, used when checking eligibility against a game's gender option. */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Gender gender;

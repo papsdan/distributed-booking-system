@@ -8,6 +8,9 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
+/**
+ * Represents a pitch that Games can be scheduled on.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -23,6 +26,7 @@ public class Pitch {
     @Column(nullable = false, length = 100)
     private String name;
 
+    /** Pitch location. */
     @ManyToOne
     @JoinColumn(name = "location_id", nullable = false)
     private Location location;
@@ -30,6 +34,7 @@ public class Pitch {
     @Column(nullable = false)
     private Integer capacity;
 
+    /** Active status showing if the pitch is currently available for new games to be scheduled on it.*/
     @Column(nullable = false)
     private Boolean active = true;
 

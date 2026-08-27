@@ -6,6 +6,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Represents a location (city/area) used to categorise Pitches and
+ * user's Profile preferred location.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
