@@ -13,6 +13,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 
+/**
+ * This class adds shared attributes (credit balance and logged-in username) to the model
+ * of every request, so they're available to the navbar on any page.
+ */
 @ControllerAdvice
 @RequiredArgsConstructor
 public class NavbarControllerAdvice {
@@ -20,6 +24,10 @@ public class NavbarControllerAdvice {
     private final UserRepository userRepository;
     private final CreditRepository creditRepository;
 
+    /**
+     * Resolves the current user's credit balance for display in the navbar.
+     * @return the balance
+     */
     @ModelAttribute("creditBalance")
     public BigDecimal creditBalance(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {
@@ -30,6 +38,10 @@ public class NavbarControllerAdvice {
         return creditRepository.sumAmountByUser(user);
     }
 
+    /**
+     * Resolves the current user's username for display in the navbar.
+     * @return the username
+     */
     @ModelAttribute("loggedInUsername")
     public String loggedInUsername(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {

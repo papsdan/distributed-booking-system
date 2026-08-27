@@ -31,6 +31,9 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * This class is the controller for browsing, creating, editing, cancelling and booking games.
+ */
 @Controller
 @RequestMapping("/games")
 @RequiredArgsConstructor
@@ -43,6 +46,14 @@ public class GameController {
     private final LocationRepository locationRepository;
     private final ProfileService profileService;
 
+    /**
+     * Shows the game listing page, filtered by the given criteria and populated with the
+     * filter dropdown options (cities, areas, game types, gender options).
+     * @param filter the filters currently applied to the listing
+     * @param createSuccess if true, shows a game created success message
+     * @param updateSuccess if true, shows a game updated success message
+     * @param cancelSuccess if true, shows a game cancelled success message
+     */
     @GetMapping
     public String listGames(@ModelAttribute("gameFilterDto") GameFilterDTO filter,
                              @RequestParam(name = "createSuccess", defaultValue = "false") boolean createSuccess,
@@ -75,6 +86,7 @@ public class GameController {
         return "games";
     }
 
+    /** Shows the blank form for creating a new game.*/
     @GetMapping("/new")
     public String showCreateForm(Model model) {
         model.addAttribute("gameRequestDto", new GameRequestDTO());
@@ -82,6 +94,10 @@ public class GameController {
         return "game-form";
     }
 
+    /**
+     * Submits the create game form. If validation fails then it resows the form with errors
+     * @param dto the submitted game details
+     */
     @PostMapping
     public String createGame(@Valid @ModelAttribute("gameRequestDto") GameRequestDTO dto,
                               BindingResult result, Model model,
@@ -100,6 +116,13 @@ public class GameController {
         }
     }
 
+    /**
+     * Shows the game details page, including attendees and the current user's
+     * booking/join eligibility state.
+     * @param id the game to show
+     * @param bookSuccess if true, shows a booking success message
+     * @param withdrawSuccess if true, shows a withdrawal success message
+     */
     @GetMapping("/{id}")
     public String showGameDetails(@PathVariable Long id,
                                    @RequestParam(name = "bookSuccess", defaultValue = "false") boolean bookSuccess,
@@ -121,6 +144,10 @@ public class GameController {
         return "game-details";
     }
 
+    /**
+     * Posts a HELD reservation on a game slot for the current user and sends them to checkout page.
+     * @param id the game to book into
+     */
     @PostMapping("/{id}/book")
     public String bookGame(@PathVariable Long id, RedirectAttributes redirectAttributes,
                             @AuthenticationPrincipal UserDetails userDetails) {
@@ -133,6 +160,11 @@ public class GameController {
         }
     }
 
+    /**
+     * Shows the checkout page for the user's held slot. This includes the countdown
+     * until the hold expires.
+     * @param id the game the slot is being checked out for
+     */
     @GetMapping("/{id}/checkout")
     public String showCheckout(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes,
                                 @AuthenticationPrincipal UserDetails userDetails) {
@@ -149,6 +181,10 @@ public class GameController {
         }
     }
 
+    /**
+     * Cancels the user's held slot and releases it back to the pool.
+     * @param id the game the slot is being checked out for
+     */
     @PostMapping("/{id}/checkout/cancel")
     public String cancelCheckout(@PathVariable Long id, RedirectAttributes redirectAttributes,
                                   @AuthenticationPrincipal UserDetails userDetails) {
@@ -161,6 +197,10 @@ public class GameController {
         }
     }
 
+    /**
+     * Confirms the current user's held slot, finalising the booking.
+     * @param id the game the slot is being checked out for
+     */
     @PostMapping("/{id}/checkout/confirm")
     public String confirmCheckout(@PathVariable Long id, RedirectAttributes redirectAttributes,
                                    @AuthenticationPrincipal UserDetails userDetails) {
@@ -173,12 +213,21 @@ public class GameController {
         }
     }
 
+    /**
+     * When the checkout countdown reaches 0, expired
+     * holds are released back to the pool immediately rather than waiting for the scheduled job.
+     * @param id the game the slot is being checked out for
+     */
     @PostMapping("/{id}/checkout/expire")
     public String expireCheckout(@PathVariable Long id) {
         bookingService.expireOverdueHeldBookings();
         return "redirect:/games/" + id;
     }
 
+    /**
+     * Withdraws the current user's confirmed booking from a game.
+     * @param id the game to withdraw from
+     */
     @PostMapping("/{id}/withdraw")
     public String withdrawGame(@PathVariable Long id, RedirectAttributes redirectAttributes,
                                @AuthenticationPrincipal UserDetails userDetails) {
@@ -191,6 +240,10 @@ public class GameController {
         }
     }
 
+    /**
+     * Shows the edit form for a game, pre-filled with its current details.
+     * @param id the game to edit
+     */
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model, @AuthenticationPrincipal UserDetails userDetails) {
         GameResponseDTO game = gameService.getGameForEdit(id, userDetails.getUsername());
@@ -215,6 +268,11 @@ public class GameController {
         return "game-form";
     }
 
+    /**
+     * Submits the edit game form. If validation fails, it re-shows the form with errors.
+     * @param id the game being updated
+     * @param dto the submitted game details
+     */
     @PostMapping("/{id}")
     public String updateGame(@PathVariable Long id,
                               @Valid @ModelAttribute("gameRequestDto") GameRequestDTO dto,
@@ -236,6 +294,10 @@ public class GameController {
         }
     }
 
+    /**
+     * Cancels a game.
+     * @param id the game to cancel
+     */
     @PostMapping("/{id}/cancel")
     public String cancelGame(@PathVariable Long id, RedirectAttributes redirectAttributes,
                               @AuthenticationPrincipal UserDetails userDetails) {
@@ -248,6 +310,11 @@ public class GameController {
         }
     }
 
+    /**
+     * Tops up the current user's credit balance from the checkout page.
+     * @param id the game being checked out for
+     * @param dto the amount to top up
+     */
     @PostMapping("/{id}/checkout/topup")
     public String topUpCredits(@PathVariable Long id,
                                @Valid @ModelAttribute("creditRequestDto") CreditRequestDTO dto,
@@ -268,6 +335,7 @@ public class GameController {
         }
     }
 
+    /** Private helper method which populates the model with dropdown options shared by the create and edit forms.*/
     private void addFormAttributes(Model model) {
         model.addAttribute("pitches", pitchRepository.findByActiveTrue());
         List<Location> locations = locationRepository.findAll();

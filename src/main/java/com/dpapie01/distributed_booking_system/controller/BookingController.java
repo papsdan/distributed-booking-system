@@ -17,6 +17,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
+/**
+ * This class is the controller for the logged-in user's own bookings page.
+ */
 @Controller
 @RequestMapping("/my-bookings")
 @RequiredArgsConstructor
@@ -24,6 +27,10 @@ public class BookingController {
 
     private final BookingService bookingService;
 
+    /**
+     * Shows the current user's bookings.
+     * @param withdrawSuccess if true, shows a withdrawal success message
+     */
     @GetMapping
     public String listBookings(@RequestParam(name = "withdrawSuccess", defaultValue = "false") boolean withdrawSuccess,
                                 Model model, @AuthenticationPrincipal UserDetails userDetails) {

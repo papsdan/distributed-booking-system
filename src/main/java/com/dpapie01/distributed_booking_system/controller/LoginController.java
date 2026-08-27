@@ -8,9 +8,17 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+/**
+ * This class is the controller for the login page.
+ */
 @Controller
 public class LoginController {
 
+    /**
+     * Shows the login page.
+     * @param loginError if true, shows a login error message resolved from the session
+     * @param logoutSuccess if true, shows a logout success message
+     */
     @GetMapping("/login")
     public String loginPage(
             @RequestParam(name = "loginError", defaultValue = "false") final Boolean loginError,
@@ -28,6 +36,7 @@ public class LoginController {
         return "login";
     }
 
+    /** Provides a user-friendly error message to decipher between invalid credentials and deactivated account.*/
     private String resolveErrorMessage(final HttpServletRequest request) {
         final Object exception = request.getSession() != null
                 ? request.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION)

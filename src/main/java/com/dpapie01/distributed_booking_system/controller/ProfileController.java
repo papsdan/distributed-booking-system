@@ -18,6 +18,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+/**
+ * This class is the controller for a user viewing and updating their own profile.
+ */
 @Controller
 @RequestMapping("/profile")
 @RequiredArgsConstructor
@@ -26,6 +29,10 @@ public class ProfileController {
     private final ProfileService profileService;
     private final LocationRepository locationRepository;
 
+    /**
+     * Shows the current user's profile page, pre-filled with their current details.
+     * @param updateSuccess if true, shows a profile updated success message
+     */
     @GetMapping
     public String showProfile(@RequestParam(name = "updateSuccess", defaultValue = "false") boolean updateSuccess,
                                Model model, @AuthenticationPrincipal UserDetails userDetails) {
@@ -44,6 +51,10 @@ public class ProfileController {
         return "profile";
     }
 
+    /**
+     * Submits the profile edit form. If validation fails, it re-shows the form with errors.
+     * @param dto the submitted profile details
+     */
     @PostMapping
     public String updateProfile(@AuthenticationPrincipal UserDetails userDetails, @Valid @ModelAttribute("updateProfileRequestDto") UpdateProfileRequestDTO dto, BindingResult result, Model model) {
         if (result.hasErrors()) {
@@ -62,6 +73,7 @@ public class ProfileController {
         }
     }
 
+    /** Private helper that populates the model with location dropdown options for the profile form.*/
     private void addLocationAttributes(Model model) {
         List<Location> locations = locationRepository.findAll();
         model.addAttribute("locations", locations);
