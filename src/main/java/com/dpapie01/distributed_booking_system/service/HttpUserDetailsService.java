@@ -10,13 +10,20 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
+/**
+ * This is a service class implementing Spring Security's UserDetailsService to load user authentication data.
+ */
 @RequiredArgsConstructor
 @Service
 public class HttpUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
-
+    /**
+     * Loads a user by email, builds authority roles with the "ROLE_" prefix and returns a Spring Security UserDetails object.
+     * Throws UsernameNotFoundException if no user matching the provided email is found.
+     * @param email the email address identifying the user
+     * @return the populated Spring Security UserDetails instance
+     */
     @Override
     public UserDetails loadUserByUsername(String email) {
 

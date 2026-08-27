@@ -23,7 +23,9 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-
+/**
+ * This is a service class for registering users, searching accounts and managing user roles/active statu.
+ */
 @RequiredArgsConstructor
 @Service
 public class UserService {
@@ -36,7 +38,12 @@ public class UserService {
     private final CreditRepository creditRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-
+    /**
+     * Registers a new user with Role.PLAYER, creates their initial Profile and gives the user SIGNUP_CREDIT_AMOUNT.
+     * Validates that the username and email are unique and that the preferred Location exists before saving.
+     * @param dto the registration details containing user credentials, location ID and gender
+     * @return the registered user response DTO
+     */
     public UserResponseDTO register(RegisterRequestDTO dto) {
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already taken");
@@ -72,7 +79,12 @@ public class UserService {
 
         return userMapper.toResponseDTO(savedUser);
     }
-
+    /**
+     * Searches and gets all users matching the criteria in UserFilterDTO.
+     * Filters by searchQuery, isActiveOnly flag and specific Role values, mapping results to response DTOs.
+     * @param filter the user search and filter criteria
+     * @return a list of filtered user response DTOs
+     */
     public List<UserResponseDTO> getAllUsers(UserFilterDTO filter) {
         return userRepository.searchUsers(
                         filter.getSearchQuery() == null || filter.getSearchQuery().isBlank() ? null : filter.getSearchQuery(),
@@ -82,7 +94,14 @@ public class UserService {
                 .map(userMapper::toResponseDTO)
                 .toList();
     }
-
+    /**
+     * Updates the active status and role of a specified user.
+     * Prevents administrators from modifying their own account status and sets deactivatedAt when deactivating.
+     * @param dto the update request containing the new active status and role
+     * @param userId the ID of the user to update
+     * @param currentUserEmail the email of the administrator making the update
+     * @return the updated user response DTO
+     */
     public UserResponseDTO updateUser(UserRequestDTO dto, Long userId, String currentUserEmail) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
