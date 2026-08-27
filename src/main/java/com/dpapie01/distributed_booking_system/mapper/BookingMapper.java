@@ -7,9 +7,17 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
+/**
+ * This class maps Booking entities to BookingResponeDTO for HTTP request responses.
+ */
 @Component
 public class BookingMapper {
 
+    /**
+     * Converts a booking and its slot's game details into a response DTO.
+     * @param booking the booking
+     * @return the mapped response DTO
+     */
     public BookingResponeDTO toResponseDTO(Booking booking) {
         Game game = booking.getSlot().getGame();
         BookingResponeDTO dto = new BookingResponeDTO();

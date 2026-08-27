@@ -6,9 +6,17 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
+/**
+ * This class maps Game entities to GameResponseDTO for HTTP request responses.
+ */
 @Component
 public class GameMapper {
 
+    /**
+     * Converts a game into a response DTO.
+     * @param game the game
+     * @return the mapped response DTO
+     */
     public GameResponseDTO toResponseDTO(Game game) {
         GameResponseDTO dto = new GameResponseDTO();
         dto.setId(game.getId());
