@@ -4,16 +4,24 @@
     <meta charset="UTF-8">
     <title>Game</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+    <link th:href="@{/css/theme.css}" rel="stylesheet">
 </head>
 <body>
 
     <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-    <div class="container mt-5">
+    <div class="page-hero">
+        <div class="container">
+            <h2 class="mb-1"><i class="bi bi-controller me-2"></i><span th:text="${gameId} != null ? 'Edit Game' : 'Create Game'"></span></h2>
+            <p class="mb-0">Set the pitch, timing and rules for this game.</p>
+        </div>
+    </div>
+
+    <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-6">
-                <h2 class="mb-4">Game Details</h2>
 
                 <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
                 <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
@@ -21,6 +29,7 @@
                     This game already has players booked in, so pitch, game type and gender option fields can no longer be changed. If you want to change any of these, please cancel the game and create a new one.
                 </div>
 
+                <div class="surface">
                 <form method="post"
                       th:action="${gameId} != null ? @{/games/{id}(id=${gameId})} : @{/games}"
                       th:object="${gameRequestDto}">
@@ -156,6 +165,7 @@
                     <button type="submit" class="btn btn-primary w-100">Save Game</button>
 
                 </form>
+                </div>
 
             </div>
         </div>

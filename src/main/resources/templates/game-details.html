@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>Game Details</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link th:href="@{/css/theme.css}" rel="stylesheet">
 </head>
 <body>
 
@@ -13,16 +15,22 @@
         <div class="row justify-content-center">
             <div class="col-md-7">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="mb-0" th:text="${game.title}"></h2>
-                    <a th:href="@{/games}" class="btn btn-outline-secondary btn-sm">Back to Games</a>
+                    <div>
+                        <h2 class="mb-1" th:text="${game.title}"></h2>
+                        <span class="badge"
+                              th:classappend="${game.status.name() == 'CANCELLED'} ? 'status-cancelled' : (${game.remainingSlots == 0} ? 'status-full' : 'status-open')"
+                              th:text="${game.status}"></span>
+                    </div>
+                    <a th:href="@{/games}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back to Games</a>
                 </div>
 
                 <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
                 <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-                <p th:if="${game.description}" th:text="${game.description}"></p>
+                <p th:if="${game.description}" class="text-muted" th:text="${game.description}"></p>
 
-                <table class="table table-borderless">
+                <div class="surface mb-4">
+                <table class="table table-borderless mb-0">
                     <tbody>
                         <tr>
                             <th>Pitch</th>
@@ -54,7 +62,7 @@
                         </tr>
                         <tr>
                             <th>Price</th>
-                            <td th:text="${game.price}"></td>
+                            <td class="price-tag" th:text="${game.price}"></td>
                         </tr>
                         <tr>
                             <th>Payment Type</th>
@@ -65,15 +73,12 @@
                             <td th:text="${game.refundPolicy.label}"></td>
                         </tr>
                         <tr>
-                            <th>Status</th>
-                            <td th:text="${game.status}"></td>
-                        </tr>
-                        <tr>
                             <th>Availability</th>
                             <td th:text="${game.attendingCount + ' attending, ' + (game.heldSlots > 0 ? (game.heldSlots + (game.heldSlots == 1 ? ' spot pending checkout, ' : ' spots pending checkout, ')) : '') + game.remainingSlots + (game.remainingSlots == 1 ? ' spot remaining' : ' spots remaining')}"></td>
                         </tr>
                     </tbody>
                 </table>
+                </div>
 
                 <div th:if="${game.remainingSlots == 0 and game.heldSlots > 0}" class="alert alert-warning">
                     This game shows as full right now, but
@@ -86,16 +91,17 @@
                     <span th:title="${joinBlockReason}">
                         <button type="submit" class="btn"
                                 th:classappend="${joinBlockReason != null} ? 'btn-secondary' : 'btn-primary'"
-                                th:disabled="${joinBlockReason != null}">Join Game</button>
+                                th:disabled="${joinBlockReason != null}"><i class="bi bi-check-circle-fill me-1"></i>Join Game</button>
                     </span>
                 </form>
                 <form th:if="${alreadyBooked and !game.pastGame}" method="post" th:action="@{/games/{id}/withdraw(id=${game.id})}"
                       class="mb-4 withdraw-form" th:attr="data-confirm-message=${withdrawConfirmMessage}">
-                    <button type="submit" class="btn btn-outline-danger">Withdraw</button>
+                    <button type="submit" class="btn btn-outline-danger"><i class="bi bi-x-circle me-1"></i>Withdraw</button>
                 </form>
 
-                <h4 class="mt-4">Attendees</h4>
-                <table class="table table-bordered align-middle" th:if="${not #lists.isEmpty(attendees)}">
+                <h4 class="mt-4 mb-3"><i class="bi bi-people-fill me-2"></i>Attendees</h4>
+                <div class="surface" th:if="${not #lists.isEmpty(attendees)}">
+                <table class="table table-borderless align-middle mb-0">
                     <thead>
                         <tr>
                             <th>Name</th>
@@ -109,6 +115,7 @@
                         </tr>
                     </tbody>
                 </table>
+                </div>
                 <p th:if="${#lists.isEmpty(attendees)}" class="text-muted">No one has booked into this game yet.</p>
 
             </div>

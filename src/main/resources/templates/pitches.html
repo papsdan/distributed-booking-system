@@ -4,20 +4,31 @@
     <meta charset="UTF-8">
     <title>Pitches</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link th:href="@{/css/theme.css}" rel="stylesheet">
 </head>
 <body>
 
     <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-    <div class="container mt-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="mb-0">Pitches</h2>
-            <a th:href="@{/admin/pitches/new}" class="btn btn-primary">Add Pitch</a>
+    <div class="page-hero">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1"><i class="bi bi-geo-alt-fill me-2"></i>Pitches</h2>
+                    <p class="mb-0">Manage the pitches available for booking.</p>
+                </div>
+                <a th:href="@{/admin/pitches/new}" class="btn btn-light"><i class="bi bi-plus-lg me-1"></i>Add Pitch</a>
+            </div>
         </div>
+    </div>
+
+    <div class="container">
 
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
-        <table class="table table-bordered align-middle">
+        <div class="surface">
+        <table class="table table-borderless align-middle mb-0">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -33,8 +44,8 @@
                     <td th:text="${pitch.locationCity + ' - ' + pitch.locationArea}"></td>
                     <td th:text="${pitch.capacity}"></td>
                     <td>
-                        <span th:if="${pitch.active}" class="badge bg-success">Active</span>
-                        <span th:unless="${pitch.active}" class="badge bg-secondary">Inactive</span>
+                        <span th:if="${pitch.active}" class="badge status-open">Active</span>
+                        <span th:unless="${pitch.active}" class="badge status-cancelled">Inactive</span>
                     </td>
                     <td>
                         <a th:href="@{/admin/pitches/{id}/edit(id=${pitch.id})}" class="btn btn-outline-secondary btn-sm">Edit</a>
@@ -48,6 +59,7 @@
                 </tr>
             </tbody>
         </table>
+        </div>
 
     </div>
 </body>

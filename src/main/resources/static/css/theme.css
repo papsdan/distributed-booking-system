@@ -1,0 +1,259 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+    --pitch-green: #1b7a3d;
+    --pitch-green-dark: #145c2e;
+    --pitch-green-light: #e7f5ec;
+    --accent-orange: #f4a340;
+    --ink: #1f2a24;
+    --muted: #6b7a72;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f6f8f6;
+    color: var(--ink);
+}
+
+h1, h2, h3, h4, h5, .navbar-brand {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Navbar */
+.navbar.bg-success {
+    background: linear-gradient(90deg, var(--pitch-green-dark), var(--pitch-green)) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+
+.navbar .nav-link {
+    font-weight: 500;
+    opacity: 0.85;
+    border-radius: 6px;
+    padding: 0.4rem 0.75rem !important;
+    transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.navbar .nav-link:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.navbar .nav-link.active {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.18);
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--pitch-green);
+    border-color: var(--pitch-green);
+}
+
+.btn-primary:hover {
+    background-color: var(--pitch-green-dark);
+    border-color: var(--pitch-green-dark);
+}
+
+.btn-outline-primary {
+    color: var(--pitch-green);
+    border-color: var(--pitch-green);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--pitch-green);
+    border-color: var(--pitch-green);
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(20, 40, 30, 0.08);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card.game-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(20, 40, 30, 0.14);
+}
+
+.game-card .card-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+}
+
+.game-card .price-tag {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    color: var(--pitch-green-dark);
+    font-size: 1.15rem;
+}
+
+.game-card .meta-row {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+/* Badges */
+.badge.status-open { background-color: var(--pitch-green-light); color: var(--pitch-green-dark); }
+.badge.status-full { background-color: #fdecea; color: #b3261e; }
+.badge.status-cancelled { background-color: #eee; color: #6b6b6b; }
+.badge.status-pending { background-color: #fff4e0; color: #b06b00; }
+.badge.status-muted { background-color: #f4f4f4; color: #aab0ac; font-weight: 500; }
+.badge.match-preferred { background-color: var(--accent-orange); color: #fff; }
+
+/* Game list rows */
+.game-row {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    background: #fff;
+    border-radius: 16px;
+    border-left: 5px solid var(--pitch-green);
+    box-shadow: 0 2px 10px rgba(20, 40, 30, 0.06);
+    padding: 1.15rem 1.5rem;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.game-row:hover {
+    box-shadow: 0 6px 18px rgba(20, 40, 30, 0.12);
+    transform: translateY(-1px);
+}
+
+.game-row.accent-full { border-left-color: #d9534f; }
+.game-row.accent-cancelled { border-left-color: #9aa39c; }
+
+.game-row .game-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+}
+
+.game-row .game-meta {
+    color: var(--muted);
+    font-size: 0.88rem;
+}
+
+.game-row .game-price {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    color: var(--pitch-green-dark);
+    font-size: 1.05rem;
+    white-space: nowrap;
+}
+
+@media (max-width: 767.98px) {
+    .game-row {
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .game-row .game-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+    }
+
+    .game-row .game-meta > span.mx-2 {
+        display: none;
+    }
+
+    .game-row .game-price {
+        order: 2;
+        font-size: 1rem;
+    }
+
+    .game-row > div:last-child {
+        order: 3;
+        width: 100%;
+    }
+
+    .game-row > div:last-child .btn,
+    .game-row > div:last-child form {
+        flex: 1;
+    }
+}
+
+/* Filter bar */
+.filter-bar {
+    background: #fff;
+    border-radius: 18px;
+    padding: 1.5rem;
+    box-shadow: 0 12px 30px rgba(20, 40, 30, 0.12);
+}
+
+/* Generic surface for detail/table pages */
+.surface {
+    background: #fff;
+    border-radius: 18px;
+    padding: 1.75rem;
+    box-shadow: 0 2px 12px rgba(20, 40, 30, 0.08);
+}
+
+/* Page hero */
+.page-hero {
+    background: linear-gradient(120deg, var(--pitch-green-dark), var(--pitch-green) 65%, #2a9350);
+    border-radius: 0 0 28px 28px;
+    padding: 2.75rem 0;
+    margin: -1.5rem 0 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.page-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 85% 20%, rgba(255, 255, 255, 0.10) 0, transparent 45%);
+    pointer-events: none;
+}
+
+.page-hero h2 {
+    color: #fff;
+    font-weight: 700;
+}
+
+.page-hero p {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.page-hero .btn-light {
+    font-weight: 600;
+    color: var(--pitch-green-dark);
+}
+
+/* Icon chip for meta rows */
+.icon-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    background: var(--pitch-green-light);
+    color: var(--pitch-green-dark);
+    font-size: 0.8rem;
+    margin-right: 0.4rem;
+    flex-shrink: 0;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 4rem 1.5rem;
+    color: var(--muted);
+}
+
+.empty-state .empty-icon {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    background: var(--pitch-green-light);
+    color: var(--pitch-green-dark);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+}

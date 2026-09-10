@@ -37,7 +37,7 @@ public class SecurityConfig {
         return http.cors(withDefaults())
                 .csrf(withDefaults())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/register/**", "/login/**").permitAll()
+                        .requestMatchers("/register/**", "/login/**", "/css/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .formLogin(form -> form
