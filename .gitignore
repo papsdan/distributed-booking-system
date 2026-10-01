@@ -33,3 +33,9 @@ build/
 .vscode/
 
 src/main/resources/application.properties
+
+### Terraform ###
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
