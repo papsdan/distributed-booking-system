@@ -1,0 +1,6 @@
+target/
+.git/
+.idea/
+.claude/
+infra/
+src/main/resources/application.properties

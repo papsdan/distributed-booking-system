@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: kickabout
+      POSTGRES_USER: kickabout
+      POSTGRES_PASSWORD: localpass
+    ports:
+      - "5433:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    image: kickabout:1.0
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/kickabout
+      SPRING_DATASOURCE_USERNAME: kickabout
+      SPRING_DATASOURCE_PASSWORD: localpass
+    ports:
+      - "8080:8080"
+
+volumes:
+  db-data:
