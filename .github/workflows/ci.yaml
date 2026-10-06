@@ -46,3 +46,31 @@ jobs:
 
       - name: Run tests
         run: ./mvnw -B test
+
+  docker:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Build the Docker image
+        run: docker build -t kickabout:${{ github.sha }} .
+
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Check formatting
+        run: terraform fmt -check -recursive infra
+
+      - name: Validate the KickAbout infrastructure
+        working-directory: infra/kickabout
+        run: |
+          terraform init -backend=false
+          terraform validate

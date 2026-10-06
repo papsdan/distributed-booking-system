@@ -56,13 +56,13 @@ resource "aws_iam_role_policy" "hello" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid      = "ReadWelcomeFileOnly"
-        Effect   = "Allow"
-        Action   = "s3:GetObject"
+        Sid    = "ReadWelcomeFileOnly"
+        Effect = "Allow"
+        Action = "s3:GetObject"
         Resource = [
           "${aws_s3_bucket.practice.arn}/welcome.txt",
           "${aws_s3_bucket.practice.arn}/rules.txt",
-          ]
+        ]
       },
       {
         Sid      = "WriteOwnLogsOnly"
