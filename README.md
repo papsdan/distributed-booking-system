@@ -1,3 +1,4 @@
+![CI](https://github.com/papsdan/distributed-booking-system/actions/workflows/ci.yaml/badge.svg)
 # KickAbout - Distributed Booking System
 
 KickAbout is a distributed booking system for grassroots football, built as an MSc Computer Science dissertation project. It allows players to browse, host and join organised football games.
