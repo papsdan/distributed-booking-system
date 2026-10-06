@@ -9,6 +9,27 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: kickabout
+          POSTGRES_USER: kickabout
+          POSTGRES_PASSWORD: testpass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kickabout"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/kickabout
+      SPRING_DATASOURCE_USERNAME: kickabout
+      SPRING_DATASOURCE_PASSWORD: testpass
+
     steps:
       - name: Get the code
         uses: actions/checkout@v4
