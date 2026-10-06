@@ -74,3 +74,21 @@ jobs:
         run: |
           terraform init -backend=false
           terraform validate
+
+  aws-login:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Log in to AWS with OIDC (no keys)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::497502378707:role/kickabout-github-plan
+          aws-region: eu-west-2
+
+      - name: Prove who we are
+        run: aws sts get-caller-identity
