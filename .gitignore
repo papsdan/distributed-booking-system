@@ -39,3 +39,4 @@ src/main/resources/application.properties
 *.tfstate
 *.tfstate.*
 *.tfvars
+infra/build/
