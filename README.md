@@ -9,6 +9,7 @@ The system's primary technical focus is concurrency-safe booking, using a reserv
 
 - **Concurrency-safe booking** - a reservation hold and optimistic locking ensure exactly one booking succeeds when multiple players compete for the same slot
 - **Games** - browse and filter games, book available slots, and host or join organised games with eligibility rules enforced per game
+- **Smart search** - a natural-language search box (e.g. "5-a-side in Leeds on Saturday under £10") translates plain English into filters using a local LLM (Ollama), with validation against real data and a graceful fallback to the manual filters if the AI is unavailable or unsure
 - **Credits** - A credits-based system stands in for a real payment gateway. Users automatically receive 100 credits on registration to use for paid online games
 - **Accounts & Profiles** - registration, login and profile management
 - **Admin Management** - manage pitches, games and users
@@ -24,12 +25,14 @@ The system's primary technical focus is concurrency-safe booking, using a reserv
 - Lombok
 - JUnit 5 / Mockito
 - Maven
+- Ollama (local LLM, used for natural-language search)
 
 ## Prerequisites
 
 - Java 21+
 - Maven
 - PostgreSQL
+- [Ollama](https://ollama.com) with the `llama3.2` model pulled (optional - only needed for the smart search feature; the rest of the app works without it)
 
 ## Setup
 
@@ -51,6 +54,15 @@ The system's primary technical focus is concurrency-safe booking, using a reserv
 4. The app will be available at `http://localhost:8080`.
 
 `spring.jpa.hibernate.ddl-auto=update` is set in the application.properties file, so the schema is created/updated automatically on startup.
+
+### Smart search (optional)
+To use the natural-language search box on the games page, install [Ollama](https://ollama.com) and pull the model:
+
+```bash
+ollama pull llama3.2
+```
+
+Ollama must be running (`ollama serve`, or it may already run as a background service) and reachable at `http://localhost:11434` (configurable via `ollama.base-url` in `application.properties`). If Ollama isn't running or the model can't make sense of a query, the search falls back to showing the unfiltered games list — the rest of the app is unaffected.
 
 ### Sample data
 `sample-data.sql` can be used to create sample data to explore the app without manually creating pitches, users and bookings. Also includes locations, pitches, user accounts and profiles, starting credits, and a range of games in different states (open, full, cancelled, completed). 
