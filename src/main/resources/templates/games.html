@@ -28,6 +28,12 @@
         <div th:if="${successMessage}" class="alert alert-success mt-4" th:text="${successMessage}"></div>
         <div th:if="${errorMessage}" class="alert alert-danger mt-4" th:text="${errorMessage}"></div>
 
+        <form method="get" th:action="@{/games/ai-search}" class="d-flex gap-2 mt-4">
+            <input type="text" name="q" maxlength="200" class="form-control" aria-label="Smart search"
+                   placeholder="Try &quot;women's 5-a-side in Leeds on Saturday under £10&quot;" />
+            <button type="submit" class="btn btn-outline-primary"><i class="bi bi-stars me-1"></i>AI Search</button>
+        </form>
+
         <form method="get" th:action="@{/games}" th:object="${gameFilterDto}" class="filter-bar">
             <div class="row g-2">
                 <div class="col">

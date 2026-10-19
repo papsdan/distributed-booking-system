@@ -12,6 +12,7 @@ import com.dpapie01.distributed_booking_system.enums.RefundPolicy;
 import com.dpapie01.distributed_booking_system.entity.Location;
 import com.dpapie01.distributed_booking_system.repository.LocationRepository;
 import com.dpapie01.distributed_booking_system.repository.PitchRepository;
+import com.dpapie01.distributed_booking_system.service.AiSearchService;
 import com.dpapie01.distributed_booking_system.service.BookingService;
 import com.dpapie01.distributed_booking_system.service.CreditService;
 import com.dpapie01.distributed_booking_system.service.GameService;
@@ -26,10 +27,13 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This class is the controller for browsing, creating, editing, cancelling and booking games.
@@ -45,6 +49,37 @@ public class GameController {
     private final PitchRepository pitchRepository;
     private final LocationRepository locationRepository;
     private final ProfileService profileService;
+    private final AiSearchService aiSearchService;
+
+    /**
+     * Natural-language search. The AI turns the sentence into filters, then we redirect to
+     * the normal listing with those filters in the URL. That means the existing filterGames
+     * logic does the real search, and the filter form shows what the AI understood, so the
+     * player can see it and correct it.
+     * @param q what the player typed, e.g. "5-a-side in Leeds on Saturday"
+     */
+    @GetMapping("/ai-search")
+    public String aiSearch(@RequestParam(name = "q", defaultValue = "") String q,
+                            RedirectAttributes redirectAttributes) {
+        if (q.isBlank()) {
+            return "redirect:/games";
+        }
+        return aiSearchService.search(q, LocalDate.now())
+                .map(filter -> "redirect:" + UriComponentsBuilder.fromPath("/games")
+                        .queryParamIfPresent("city", Optional.ofNullable(filter.getCity()))
+                        .queryParamIfPresent("area", Optional.ofNullable(filter.getArea()))
+                        .queryParamIfPresent("gameType", Optional.ofNullable(filter.getGameType()))
+                        .queryParamIfPresent("genderOption", Optional.ofNullable(filter.getGenderOption()))
+                        .queryParamIfPresent("gameDate", Optional.ofNullable(filter.getGameDate()))
+                        .queryParamIfPresent("maxPrice", Optional.ofNullable(filter.getMaxPrice()))
+                        .queryParam("openSlotsOnly", filter.isOpenSlotsOnly())
+                        .encode().build().toUriString())
+                .orElseGet(() -> {
+                    redirectAttributes.addFlashAttribute("errorMessage",
+                            "Smart search couldn't handle that right now. Use the filters below instead.");
+                    return "redirect:/games";
+                });
+    }
 
     /**
      * Shows the game listing page, filtered by the given criteria and populated with the
